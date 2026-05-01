@@ -168,7 +168,7 @@ public class SalaryService {
         if (data.getTotalWorkingDays() == null || data.getTotalWorkingDays() <= 0) {
             throw new RuntimeException("Total working days must be greater than 0");
         }
-        if (data.getAccumulatedSalary() == null || data.getAccumulatedSalary().compareTo(BigDecimal.ZERO) == 0) {
+        if (data.getAccumulatedSalary() == null || data.getAccumulatedSalary().compareTo(BigDecimal.ZERO) <= 0) {
             BigDecimal accumulated = data.getNetSalary()
                     .multiply(BigDecimal.valueOf(data.getDaysWorked()))
                     .divide(BigDecimal.valueOf(data.getTotalWorkingDays()), 2, RoundingMode.HALF_UP);

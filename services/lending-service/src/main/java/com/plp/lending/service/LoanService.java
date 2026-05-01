@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.client.RestTemplate;
 
 import jakarta.persistence.EntityManager;
@@ -207,17 +209,27 @@ public class LoanService {
             loan.setClosureDate(LocalDate.now());
             log.info("Loan closed: {}", loan.getLoanNumber());
 
-            // Release borrower limit in program-service
-            try {
-                restTemplate.postForObject(
-                        "http://program-service/api/v1/borrowers/{borrowerId}/limits/release?programId={programId}&amount={amount}",
-                        null, Map.class, loan.getBorrowerId(), loan.getProgramId(), loan.getDisbursedAmount());
-                log.info("Limit released for borrower={} program={} amount={}", loan.getBorrowerId(), loan.getProgramId(), loan.getDisbursedAmount());
-            } catch (Exception e) {
-                log.error("CRITICAL: Failed to release limit for borrower={} program={} amount={}: {}. Publishing compensating event for retry.",
-                        loan.getBorrowerId(), loan.getProgramId(), loan.getDisbursedAmount(), e.getMessage());
-                loanEventPublisher.publishLoanEvent("LIMIT_RELEASE_REQUIRED", loan);
-            }
+            // Release borrower limit after transaction commits
+            final UUID borrowerId = loan.getBorrowerId();
+            final UUID programId = loan.getProgramId();
+            final BigDecimal releaseAmount = loan.getDisbursedAmount();
+            final UUID closedLoanId = loan.getId();
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    try {
+                        restTemplate.postForObject(
+                                "http://program-service/api/v1/borrowers/{borrowerId}/limits/release?programId={programId}&amount={amount}",
+                                null, Map.class, borrowerId, programId, releaseAmount);
+                        log.info("Limit released for borrower={} program={} amount={}", borrowerId, programId, releaseAmount);
+                    } catch (Exception e) {
+                        log.error("CRITICAL: Failed to release limit for borrower={} program={} amount={}: {}. Publishing compensating event.",
+                                borrowerId, programId, releaseAmount, e.getMessage());
+                        loanEventPublisher.publishLoanEvent("LIMIT_RELEASE_REQUIRED",
+                                loanRepository.findById(closedLoanId).orElse(null));
+                    }
+                }
+            });
         }
 
         loanRepository.save(loan);
