@@ -90,7 +90,13 @@ public class LimitService {
     public BorrowerLimit releaseLimit(UUID borrowerId, UUID programId, BigDecimal amount) {
         BorrowerLimit limit = getLimit(borrowerId, programId);
 
-        limit.setUtilizedLimit(limit.getUtilizedLimit().subtract(amount));
+        BigDecimal newUtilized = limit.getUtilizedLimit().subtract(amount);
+        if (newUtilized.compareTo(BigDecimal.ZERO) < 0) {
+            log.warn("Release amount {} exceeds utilized limit {} for borrower={} program={}, clamping to zero",
+                    amount, limit.getUtilizedLimit(), borrowerId, programId);
+            newUtilized = BigDecimal.ZERO;
+        }
+        limit.setUtilizedLimit(newUtilized);
         limit.setAvailableLimit(limit.getSanctionedLimit().subtract(limit.getUtilizedLimit()));
         limit.setActiveLoanCount(Math.max(0, limit.getActiveLoanCount() - 1));
         limitRepository.save(limit);

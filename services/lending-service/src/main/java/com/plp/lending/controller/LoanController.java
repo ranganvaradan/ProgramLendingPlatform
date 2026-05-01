@@ -41,7 +41,7 @@ public class LoanController {
         } else if (programId != null) {
             loans = loanService.getLoansByProgram(programId);
         } else {
-            loans = loanService.getOverdueLoans();
+            loans = loanService.getAllLoans();
         }
         return ResponseEntity.ok(Map.of("status", "SUCCESS", "data", loans));
     }

@@ -32,18 +32,27 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
             "/eureka"
     );
 
+    private static final List<String> INTERNAL_HEADERS = List.of(
+            "X-User-Id", "X-User-Roles", "X-User-Email"
+    );
+
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         String path = exchange.getRequest().getURI().getPath();
 
+        // Strip client-supplied internal headers to prevent header injection
+        ServerHttpRequest.Builder sanitized = exchange.getRequest().mutate();
+        INTERNAL_HEADERS.forEach(h -> sanitized.headers(headers -> headers.remove(h)));
+        ServerWebExchange sanitizedExchange = exchange.mutate().request(sanitized.build()).build();
+
         if (isOpenEndpoint(path)) {
-            return chain.filter(exchange);
+            return chain.filter(sanitizedExchange);
         }
 
-        String authHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+        String authHeader = sanitizedExchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-            return exchange.getResponse().setComplete();
+            sanitizedExchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+            return sanitizedExchange.getResponse().setComplete();
         }
 
         String token = authHeader.substring(7);
@@ -55,16 +64,16 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
                     .parseSignedClaims(token)
                     .getPayload();
 
-            ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
+            ServerHttpRequest mutatedRequest = sanitizedExchange.getRequest().mutate()
                     .header("X-User-Id", claims.getSubject())
                     .header("X-User-Roles", claims.get("roles", String.class))
                     .header("X-User-Email", claims.get("email", String.class))
                     .build();
 
-            return chain.filter(exchange.mutate().request(mutatedRequest).build());
+            return chain.filter(sanitizedExchange.mutate().request(mutatedRequest).build());
         } catch (Exception e) {
-            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-            return exchange.getResponse().setComplete();
+            sanitizedExchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+            return sanitizedExchange.getResponse().setComplete();
         }
     }
 

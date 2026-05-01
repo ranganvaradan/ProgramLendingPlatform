@@ -119,6 +119,10 @@ public class LoanService {
         return loanRepository.findByProgramId(programId);
     }
 
+    public List<Loan> getAllLoans() {
+        return loanRepository.findAll();
+    }
+
     public List<Loan> getOverdueLoans() {
         return loanRepository.findOverdueLoans();
     }
