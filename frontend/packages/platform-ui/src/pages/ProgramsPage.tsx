@@ -9,6 +9,9 @@ export default function ProgramsPage() {
   useEffect(() => {
     programApi.list().then((res) => {
       setPrograms(res.data.data || []);
+    }).catch((err) => {
+      console.error('Failed to fetch programs:', err);
+    }).finally(() => {
       setLoading(false);
     });
   }, []);

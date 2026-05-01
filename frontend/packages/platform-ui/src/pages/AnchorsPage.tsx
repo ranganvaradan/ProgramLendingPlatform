@@ -9,6 +9,9 @@ export default function AnchorsPage() {
   useEffect(() => {
     anchorApi.list().then((res) => {
       setAnchors(res.data.data || []);
+    }).catch((err) => {
+      console.error('Failed to fetch anchors:', err);
+    }).finally(() => {
       setLoading(false);
     });
   }, []);

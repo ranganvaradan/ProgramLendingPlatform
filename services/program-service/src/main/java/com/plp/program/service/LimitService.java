@@ -14,6 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import jakarta.persistence.EntityManager;
+
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
@@ -26,6 +28,7 @@ public class LimitService {
     private final BorrowerLimitRepository limitRepository;
     private final ProgramRepository programRepository;
     private final RedisTemplate<String, String> redisTemplate;
+    private final EntityManager entityManager;
 
     private static final String LIMIT_KEY_PREFIX = "limit:";
 
@@ -73,7 +76,15 @@ public class LimitService {
             throw new RuntimeException("Insufficient available limit. Available: " + limit.getAvailableLimit() + ", Requested: " + amount);
         }
 
-        // Check program-level limit
+        if (limit.getActiveLoanCount() >= limit.getMaxConcurrentLoans()) {
+            throw new RuntimeException("Maximum concurrent loans reached. Active: " + limit.getActiveLoanCount() + ", Max: " + limit.getMaxConcurrentLoans());
+        }
+
+        // Acquire program-level advisory lock to prevent race condition on aggregate check
+        entityManager.createNativeQuery("SELECT pg_advisory_xact_lock(:lockId)")
+                .setParameter("lockId", programId.getMostSignificantBits())
+                .getSingleResult();
+
         BigDecimal programUtilized = limitRepository.sumUtilizedByProgramId(programId);
         Program program = programRepository.findById(programId).orElseThrow();
         if (programUtilized.add(amount).compareTo(program.getProgramLimit()) > 0) {

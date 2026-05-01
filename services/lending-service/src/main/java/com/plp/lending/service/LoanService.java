@@ -8,12 +8,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.persistence.EntityManager;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicLong;
 
 @Slf4j
 @Service
@@ -21,7 +22,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class LoanService {
 
     private final LoanRepository loanRepository;
-    private static final AtomicLong SEQUENCE = new AtomicLong(System.currentTimeMillis());
+    private final EntityManager entityManager;
 
     @Transactional
     public Loan requestLoan(Loan loan) {
@@ -150,6 +151,8 @@ public class LoanService {
 
     private String generateLoanNumber(String productType) {
         String prefix = "PDL".equals(productType) || "PAY_DAY_LOAN".equals(productType) ? "PDL" : "IDF";
-        return prefix + "-" + SEQUENCE.incrementAndGet();
+        Long seq = (Long) entityManager.createNativeQuery("SELECT nextval('plp_lending.loan_number_seq')")
+                .getSingleResult();
+        return prefix + "-" + seq;
     }
 }

@@ -9,6 +9,9 @@ export default function LoansPage() {
   useEffect(() => {
     loanApi.list().then((res) => {
       setLoans(res.data.data || []);
+    }).catch((err) => {
+      console.error('Failed to fetch loans:', err);
+    }).finally(() => {
       setLoading(false);
     });
   }, []);
