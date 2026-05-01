@@ -41,7 +41,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(authUser);
       return authUser;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Login failed';
+      const axiosErr = err as { response?: { data?: { message?: string } } };
+      const message = axiosErr?.response?.data?.message || (err instanceof Error ? err.message : 'Login failed');
       setError(message);
       throw err;
     } finally {

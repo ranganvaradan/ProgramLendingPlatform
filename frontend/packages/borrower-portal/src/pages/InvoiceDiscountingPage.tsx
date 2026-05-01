@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { portalApi, programApi } from '@plp/shared';
+import { portalApi, programApi, apiClient } from '@plp/shared';
 import type { Invoice, Program } from '@plp/shared';
 
 export default function InvoiceDiscountingPage() {
@@ -22,19 +22,20 @@ export default function InvoiceDiscountingPage() {
       .catch(console.error);
   }, []);
 
-  const loadInvoices = () => {
+  const loadInvoices = async () => {
     if (!borrowerId) return;
     setLoading(true);
-    portalApi.borrowerLoans(borrowerId)
-      .catch(() => null)
-      .finally(() => setLoading(false));
-
-    // Fetch eligible invoices via the program-service invoices endpoint
-    import('@plp/shared').then(({ apiClient }) => {
-      apiClient.get(`/api/v1/invoices/borrower/${borrowerId}/eligible`)
-        .then((r) => setInvoices(r.data || []))
-        .catch(console.error);
-    });
+    try {
+      const [, invoiceRes] = await Promise.all([
+        portalApi.borrowerLoans(borrowerId).catch(() => null),
+        apiClient.get(`/api/v1/invoices/borrower/${borrowerId}/eligible`).catch(() => ({ data: [] })),
+      ]);
+      setInvoices(invoiceRes.data || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const checkEligibility = async () => {

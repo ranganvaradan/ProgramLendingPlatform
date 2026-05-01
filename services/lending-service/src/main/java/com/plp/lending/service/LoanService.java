@@ -45,6 +45,9 @@ public class LoanService {
             } catch (Exception e) {
                 log.warn("Failed to resolve anchorId from program {}: {}", loan.getProgramId(), e.getMessage());
             }
+            if (loan.getAnchorId() == null) {
+                throw new RuntimeException("Unable to resolve anchor for program " + loan.getProgramId() + ". Please try again or contact support.");
+            }
         }
         loan.setLoanNumber(generateLoanNumber(loan.getProductType()));
         loan.setRequestDate(LocalDate.now());
