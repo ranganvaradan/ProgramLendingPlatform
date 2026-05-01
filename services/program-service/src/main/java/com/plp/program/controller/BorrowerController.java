@@ -63,24 +63,6 @@ public class BorrowerController {
         return ResponseEntity.ok(Map.of("status", "SUCCESS", "data", limit));
     }
 
-    @PostMapping("/{id}/limits/block")
-    public ResponseEntity<Map<String, Object>> blockLimit(
-            @PathVariable UUID id,
-            @RequestParam UUID programId,
-            @RequestParam BigDecimal amount) {
-        BorrowerLimit limit = limitService.blockLimit(id, programId, amount);
-        return ResponseEntity.ok(Map.of("status", "SUCCESS", "data", limit));
-    }
-
-    @PostMapping("/{id}/limits/release")
-    public ResponseEntity<Map<String, Object>> releaseLimit(
-            @PathVariable UUID id,
-            @RequestParam UUID programId,
-            @RequestParam BigDecimal amount) {
-        BorrowerLimit limit = limitService.releaseLimit(id, programId, amount);
-        return ResponseEntity.ok(Map.of("status", "SUCCESS", "data", limit));
-    }
-
     @PostMapping("/{id}/limits")
     public ResponseEntity<Map<String, Object>> assignLimit(
             @PathVariable UUID id,

@@ -147,7 +147,7 @@ public class LoanService {
         // Block borrower limit in program-service — mandatory for disbursement
         try {
             restTemplate.postForObject(
-                    "http://program-service/api/v1/borrowers/{borrowerId}/limits/block?programId={programId}&amount={amount}",
+                    "http://program-service/internal/v1/borrowers/{borrowerId}/limits/block?programId={programId}&amount={amount}",
                     null, Map.class, loan.getBorrowerId(), loan.getProgramId(), disbursedAmount);
             log.info("Limit blocked for borrower={} program={} amount={}", loan.getBorrowerId(), loan.getProgramId(), disbursedAmount);
         } catch (Exception e) {
@@ -170,15 +170,22 @@ public class LoanService {
                 // Compensate: release the limit that was already blocked
                 try {
                     restTemplate.postForObject(
-                            "http://program-service/api/v1/borrowers/{borrowerId}/limits/release?programId={programId}&amount={amount}",
+                            "http://program-service/internal/v1/borrowers/{borrowerId}/limits/release?programId={programId}&amount={amount}",
                             null, Map.class, loan.getBorrowerId(), loan.getProgramId(), disbursedAmount);
                     log.info("Compensating limit release for borrower={} amount={}", loan.getBorrowerId(), disbursedAmount);
                 } catch (Exception releaseEx) {
                     log.error("CRITICAL: Failed to release limit after invoice mark failure. borrower={} amount={}: {}",
                             loan.getBorrowerId(), disbursedAmount, releaseEx.getMessage());
+                    // Revert loan state before publishing so event payload has correct status
+                    loan.setStatus(LoanStatus.APPROVED);
+                    loan.setDisbursedAmount(null);
+                    loan.setDisbursementDate(null);
                     loanEventPublisher.publishLoanEventImmediate("LIMIT_RELEASE_REQUIRED", loan);
+                    loanRepository.save(loan);
+                    log.error("Failed to mark invoice {} as discounted — aborting disbursement: {}", loan.getInvoiceId(), e.getMessage());
+                    throw new RuntimeException("Disbursement aborted: unable to update invoice discounted amount. " + e.getMessage(), e);
                 }
-                // Revert loan state
+                // Revert loan state (limit release succeeded)
                 loan.setStatus(LoanStatus.APPROVED);
                 loan.setDisbursedAmount(null);
                 loan.setDisbursementDate(null);
@@ -220,7 +227,7 @@ public class LoanService {
                 public void afterCommit() {
                     try {
                         restTemplate.postForObject(
-                                "http://program-service/api/v1/borrowers/{borrowerId}/limits/release?programId={programId}&amount={amount}",
+                                "http://program-service/internal/v1/borrowers/{borrowerId}/limits/release?programId={programId}&amount={amount}",
                                 null, Map.class, borrowerId, programId, releaseAmount);
                         log.info("Limit released for borrower={} program={} amount={}", borrowerId, programId, releaseAmount);
                     } catch (Exception e) {
