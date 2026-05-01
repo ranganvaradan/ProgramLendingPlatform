@@ -29,6 +29,9 @@ public class LoanService {
         loan.setLoanNumber(generateLoanNumber(loan.getProductType()));
         loan.setRequestDate(LocalDate.now());
         loan.setStatus(LoanStatus.REQUESTED);
+        loan.setTotalRepaid(BigDecimal.ZERO);
+        loan.setPenalInterest(BigDecimal.ZERO);
+        loan.setDpd(0);
 
         BigDecimal interest = calculateInterest(
                 loan.getRequestedAmount(),
@@ -48,7 +51,7 @@ public class LoanService {
 
     @Transactional
     public Loan approveLoan(UUID loanId, UUID approvedBy, BigDecimal sanctionedAmount) {
-        Loan loan = getLoan(loanId);
+        Loan loan = getLoanForUpdate(loanId);
         if (loan.getStatus() != LoanStatus.REQUESTED && loan.getStatus() != LoanStatus.ELIGIBILITY_CHECK) {
             throw new RuntimeException("Loan cannot be approved. Current status: " + loan.getStatus());
         }
@@ -85,7 +88,7 @@ public class LoanService {
 
     @Transactional
     public Loan markDisbursed(UUID loanId, BigDecimal disbursedAmount) {
-        Loan loan = getLoan(loanId);
+        Loan loan = getLoanForUpdate(loanId);
         if (loan.getStatus() != LoanStatus.APPROVED && loan.getStatus() != LoanStatus.DISBURSEMENT_PENDING) {
             throw new RuntimeException("Loan cannot be disbursed. Current status: " + loan.getStatus());
         }
@@ -100,7 +103,7 @@ public class LoanService {
 
     @Transactional
     public Loan recordRepayment(UUID loanId, BigDecimal repaidAmount) {
-        Loan loan = getLoan(loanId);
+        Loan loan = getLoanForUpdate(loanId);
         if (loan.getStatus() != LoanStatus.DISBURSED && loan.getStatus() != LoanStatus.REPAYMENT_DUE && loan.getStatus() != LoanStatus.OVERDUE) {
             throw new RuntimeException("Repayment cannot be recorded. Loan status: " + loan.getStatus());
         }
@@ -120,6 +123,11 @@ public class LoanService {
 
     public Loan getLoan(UUID loanId) {
         return loanRepository.findById(loanId)
+                .orElseThrow(() -> new RuntimeException("Loan not found: " + loanId));
+    }
+
+    private Loan getLoanForUpdate(UUID loanId) {
+        return loanRepository.findByIdForUpdate(loanId)
                 .orElseThrow(() -> new RuntimeException("Loan not found: " + loanId));
     }
 

@@ -18,6 +18,7 @@ import jakarta.persistence.EntityManager;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
@@ -143,9 +144,11 @@ public class LimitService {
 
     private void syncLimitToRedis(BorrowerLimit limit) {
         String key = LIMIT_KEY_PREFIX + limit.getBorrowerId() + ":" + limit.getProgramId();
-        redisTemplate.opsForHash().put(key, "sanctioned", limit.getSanctionedLimit().toPlainString());
-        redisTemplate.opsForHash().put(key, "utilized", limit.getUtilizedLimit().toPlainString());
-        redisTemplate.opsForHash().put(key, "available", limit.getAvailableLimit().toPlainString());
-        redisTemplate.opsForHash().put(key, "status", limit.getStatus().name());
+        redisTemplate.opsForHash().putAll(key, Map.of(
+                "sanctioned", limit.getSanctionedLimit().toPlainString(),
+                "utilized", limit.getUtilizedLimit().toPlainString(),
+                "available", limit.getAvailableLimit().toPlainString(),
+                "status", limit.getStatus().name()
+        ));
     }
 }
