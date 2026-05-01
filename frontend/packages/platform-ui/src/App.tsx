@@ -6,6 +6,9 @@ import DashboardPage from './pages/DashboardPage';
 import ProgramsPage from './pages/ProgramsPage';
 import AnchorsPage from './pages/AnchorsPage';
 import LoansPage from './pages/LoansPage';
+import ReportsPage from './pages/ReportsPage';
+import AuditTrailPage from './pages/AuditTrailPage';
+import NotificationsPage from './pages/NotificationsPage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
@@ -29,6 +32,9 @@ export default function App() {
         <Route path="programs" element={<ProgramsPage />} />
         <Route path="anchors" element={<AnchorsPage />} />
         <Route path="loans" element={<LoansPage />} />
+        <Route path="reports" element={<ReportsPage />} />
+        <Route path="audit" element={<AuditTrailPage />} />
+        <Route path="notifications" element={<NotificationsPage />} />
       </Route>
     </Routes>
   );

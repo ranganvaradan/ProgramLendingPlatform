@@ -3,8 +3,10 @@ package com.plp.lending.controller;
 import com.plp.lending.model.dto.LoanRequestDTO;
 import com.plp.lending.model.entity.Loan;
 import com.plp.lending.service.LoanService;
+import com.plp.lending.service.kfs.KfsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,6 +21,7 @@ import java.util.UUID;
 public class LoanController {
 
     private final LoanService loanService;
+    private final KfsService kfsService;
 
     @PostMapping
     public ResponseEntity<Map<String, Object>> requestLoan(@RequestBody LoanRequestDTO dto) {
@@ -93,5 +96,20 @@ public class LoanController {
         BigDecimal amount = new BigDecimal(body.get("amount").toString());
         Loan updated = loanService.recordRepayment(id, amount);
         return ResponseEntity.ok(Map.of("status", "SUCCESS", "data", updated));
+    }
+
+    @GetMapping("/{id}/kfs")
+    public ResponseEntity<String> getKfs(@PathVariable UUID id) {
+        String html = kfsService.generateKfs(id);
+        return ResponseEntity.ok()
+                .contentType(MediaType.TEXT_HTML)
+                .header("Content-Disposition", "inline; filename=KFS_" + id + ".html")
+                .body(html);
+    }
+
+    @GetMapping("/overdue")
+    public ResponseEntity<Map<String, Object>> getOverdueLoans() {
+        List<Loan> overdue = loanService.getOverdueLoans();
+        return ResponseEntity.ok(Map.of("status", "SUCCESS", "data", overdue));
     }
 }

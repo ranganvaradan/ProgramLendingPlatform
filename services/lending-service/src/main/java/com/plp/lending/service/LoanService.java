@@ -1,5 +1,6 @@
 package com.plp.lending.service;
 
+import com.plp.lending.event.LoanEventPublisher;
 import com.plp.lending.model.entity.Loan;
 import com.plp.lending.model.enums.LoanStatus;
 import com.plp.lending.repository.LoanRepository;
@@ -26,6 +27,7 @@ public class LoanService {
     private final LoanRepository loanRepository;
     private final EntityManager entityManager;
     private final RestTemplate restTemplate;
+    private final LoanEventPublisher loanEventPublisher;
 
     @Transactional
     public Loan requestLoan(Loan loan) {
@@ -69,6 +71,9 @@ public class LoanService {
 
         loan = loanRepository.save(loan);
         log.info("Loan requested: {} by borrower {} amount {}", loan.getLoanNumber(), loan.getBorrowerId(), loan.getRequestedAmount());
+        loanEventPublisher.publishLoanEvent("LOAN_REQUESTED", loan);
+        loanEventPublisher.publishAuditEvent("LOAN", loan.getId().toString(), "REQUESTED",
+                null, null, null, "{\"loanNumber\":\"" + loan.getLoanNumber() + "\",\"amount\":" + loan.getRequestedAmount() + "}");
         return loan;
     }
 
@@ -93,6 +98,10 @@ public class LoanService {
 
         loanRepository.save(loan);
         log.info("Loan approved: {} sanctionedAmount={}", loan.getLoanNumber(), loan.getSanctionedAmount());
+        loanEventPublisher.publishLoanEvent("LOAN_APPROVED", loan);
+        loanEventPublisher.publishAuditEvent("LOAN", loan.getId().toString(), "APPROVED",
+                approvedBy != null ? approvedBy.toString() : null, null,
+                "{\"status\":\"REQUESTED\"}", "{\"status\":\"APPROVED\",\"sanctionedAmount\":" + loan.getSanctionedAmount() + "}");
         return loan;
     }
 
@@ -106,6 +115,8 @@ public class LoanService {
         loan.setRejectionReason(reason);
         loanRepository.save(loan);
         log.info("Loan rejected: {} reason={}", loan.getLoanNumber(), reason);
+        loanEventPublisher.publishAuditEvent("LOAN", loan.getId().toString(), "REJECTED",
+                null, null, "{\"status\":\"REQUESTED\"}", "{\"status\":\"REJECTED\",\"reason\":\"" + reason + "\"}");
         return loan;
     }
 
@@ -128,6 +139,9 @@ public class LoanService {
 
         loanRepository.save(loan);
         log.info("Loan disbursed: {} amount={}", loan.getLoanNumber(), disbursedAmount);
+        loanEventPublisher.publishLoanEvent("LOAN_DISBURSED", loan);
+        loanEventPublisher.publishAuditEvent("LOAN", loan.getId().toString(), "DISBURSED",
+                null, null, "{\"status\":\"APPROVED\"}", "{\"status\":\"DISBURSED\",\"disbursedAmount\":" + disbursedAmount + "}");
         return loan;
     }
 
@@ -148,6 +162,9 @@ public class LoanService {
         }
 
         loanRepository.save(loan);
+        loanEventPublisher.publishLoanEvent("REPAYMENT_RECEIVED", loan);
+        loanEventPublisher.publishAuditEvent("LOAN", loan.getId().toString(), "REPAYMENT",
+                null, null, null, "{\"repaidAmount\":" + repaidAmount + ",\"outstanding\":" + loan.getOutstandingAmount() + ",\"status\":\"" + loan.getStatus() + "\"}");
         return loan;
     }
 

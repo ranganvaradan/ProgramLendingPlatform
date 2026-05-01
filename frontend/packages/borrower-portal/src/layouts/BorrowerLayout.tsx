@@ -6,6 +6,8 @@ const navItems = [
   { path: '/request-loan', label: 'Request Loan', icon: '💰' },
   { path: '/my-loans', label: 'My Loans', icon: '📋' },
   { path: '/invoice-discounting', label: 'Invoice Discounting', icon: '🧾' },
+  { path: '/repayments', label: 'Repayments', icon: '💳' },
+  { path: '/notifications', label: 'Notifications', icon: '🔔' },
 ];
 
 export default function BorrowerLayout() {

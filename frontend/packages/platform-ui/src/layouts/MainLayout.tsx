@@ -6,6 +6,9 @@ const navItems = [
   { path: '/programs', label: 'Programs', icon: '📋' },
   { path: '/anchors', label: 'Anchors', icon: '🏢' },
   { path: '/loans', label: 'Loans', icon: '💰' },
+  { path: '/reports', label: 'Reports', icon: '📈' },
+  { path: '/audit', label: 'Audit Trail', icon: '🔍' },
+  { path: '/notifications', label: 'Notifications', icon: '🔔' },
 ];
 
 export default function MainLayout() {

@@ -148,3 +148,42 @@ export const integrationApi = {
   listInvoices: (buyerId: string, anchorId: string) =>
     apiClient.get('/api/v1/integrations/erp/invoices', { params: { buyerId, anchorId } }),
 };
+
+export const notificationApi = {
+  list: (recipientId: string, page = 0, size = 20) =>
+    apiClient.get('/api/v1/notifications', { params: { recipientId, page, size } }),
+  unreadCount: (recipientId: string) =>
+    apiClient.get('/api/v1/notifications/unread-count', { params: { recipientId } }),
+  templates: () => apiClient.get('/api/v1/notifications/templates'),
+  updateTemplate: (id: string, data: Record<string, string>) =>
+    apiClient.put(`/api/v1/notifications/templates/${id}`, data),
+};
+
+export const reportApi = {
+  disbursementSummary: (fromDate?: string, toDate?: string) =>
+    apiClient.get('/api/v1/reports/disbursement-summary', { params: { fromDate, toDate } }),
+  portfolioSummary: () => apiClient.get('/api/v1/reports/portfolio-summary'),
+  overdueReport: () => apiClient.get('/api/v1/reports/overdue'),
+  dashboardStats: () => apiClient.get('/api/v1/reports/dashboard-stats'),
+  definitions: () => apiClient.get('/api/v1/reports/definitions'),
+  exportDisbursement: (fromDate?: string, toDate?: string) =>
+    apiClient.get('/api/v1/reports/export/disbursement-summary', {
+      params: { fromDate, toDate }, responseType: 'blob',
+    }),
+  exportPortfolio: () =>
+    apiClient.get('/api/v1/reports/export/portfolio-summary', { responseType: 'blob' }),
+  exportOverdue: () =>
+    apiClient.get('/api/v1/reports/export/overdue', { responseType: 'blob' }),
+};
+
+export const auditApi = {
+  list: (page = 0, size = 50) =>
+    apiClient.get('/api/v1/reports/audit', { params: { page, size } }),
+  getEntityAudit: (entityType: string, entityId: string, page = 0) =>
+    apiClient.get(`/api/v1/reports/audit/${entityType}/${entityId}`, { params: { page } }),
+};
+
+export const kfsApi = {
+  getKfs: (loanId: string) =>
+    apiClient.get(`/api/v1/loans/${loanId}/kfs`, { responseType: 'text' }),
+};
