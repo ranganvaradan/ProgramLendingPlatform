@@ -22,4 +22,4 @@ CREATE INDEX idx_users_linked_entity ON users(linked_entity_id);
 
 -- Seed default admin user (password: Admin@PLP2026)
 INSERT INTO users (email, password_hash, full_name, role, status)
-VALUES ('admin@plp.com', '$2a$10$rDkPvvAFV6kgDNp0bGOJne7z0vYHq0V5mQOGEhMKHQqpDvRzHGKHe', 'Platform Admin', 'PLATFORM_ADMIN', 'ACTIVE');
+VALUES ('admin@plp.com', '$2b$10$CPfnMXAxCJlT9vOe9z6dI.s/77kG01xqHq2ZH8uX8R/vuP5To48ay', 'Platform Admin', 'PLATFORM_ADMIN', 'ACTIVE');
