@@ -59,7 +59,8 @@ public class LimitService {
 
     @Transactional
     public BorrowerLimit blockLimit(UUID borrowerId, UUID programId, BigDecimal amount) {
-        BorrowerLimit limit = getLimit(borrowerId, programId);
+        BorrowerLimit limit = limitRepository.findByBorrowerIdAndProgramIdForUpdate(borrowerId, programId)
+                .orElseThrow(() -> new RuntimeException("Limit not found for borrower " + borrowerId + " in program " + programId));
 
         if (limit.getStatus() != LimitStatus.ACTIVE) {
             throw new RuntimeException("Limit is not active. Status: " + limit.getStatus());
@@ -88,7 +89,8 @@ public class LimitService {
 
     @Transactional
     public BorrowerLimit releaseLimit(UUID borrowerId, UUID programId, BigDecimal amount) {
-        BorrowerLimit limit = getLimit(borrowerId, programId);
+        BorrowerLimit limit = limitRepository.findByBorrowerIdAndProgramIdForUpdate(borrowerId, programId)
+                .orElseThrow(() -> new RuntimeException("Limit not found for borrower " + borrowerId + " in program " + programId));
 
         BigDecimal newUtilized = limit.getUtilizedLimit().subtract(amount);
         if (newUtilized.compareTo(BigDecimal.ZERO) < 0) {

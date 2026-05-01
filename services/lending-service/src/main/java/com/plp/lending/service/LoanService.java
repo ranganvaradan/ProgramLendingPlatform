@@ -70,6 +70,9 @@ public class LoanService {
     @Transactional
     public Loan rejectLoan(UUID loanId, String reason) {
         Loan loan = getLoan(loanId);
+        if (loan.getStatus() != LoanStatus.REQUESTED && loan.getStatus() != LoanStatus.ELIGIBILITY_CHECK) {
+            throw new RuntimeException("Loan cannot be rejected. Current status: " + loan.getStatus());
+        }
         loan.setStatus(LoanStatus.REJECTED);
         loan.setRejectionReason(reason);
         loanRepository.save(loan);
@@ -80,6 +83,9 @@ public class LoanService {
     @Transactional
     public Loan markDisbursed(UUID loanId, BigDecimal disbursedAmount) {
         Loan loan = getLoan(loanId);
+        if (loan.getStatus() != LoanStatus.APPROVED && loan.getStatus() != LoanStatus.DISBURSEMENT_PENDING) {
+            throw new RuntimeException("Loan cannot be disbursed. Current status: " + loan.getStatus());
+        }
         loan.setDisbursedAmount(disbursedAmount);
         loan.setDisbursementDate(LocalDate.now());
         loan.setStatus(LoanStatus.DISBURSED);

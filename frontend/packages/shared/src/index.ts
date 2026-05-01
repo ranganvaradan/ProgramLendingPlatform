@@ -1,3 +1,3 @@
 export * from './api/client';
 export * from './types';
-export * from './hooks/useAuth';
+export { useAuth, AuthProvider, AuthContext } from './hooks/useAuth.js';

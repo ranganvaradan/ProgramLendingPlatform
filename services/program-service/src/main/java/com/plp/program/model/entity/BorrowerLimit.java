@@ -67,4 +67,8 @@ public class BorrowerLimit {
 
     @UpdateTimestamp
     private Instant updatedAt;
+
+    @jakarta.persistence.Version
+    @Builder.Default
+    private Long version = 0L;
 }
