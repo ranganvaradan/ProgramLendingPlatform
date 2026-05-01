@@ -116,7 +116,26 @@ export const portalApi = {
   borrowerLoans: (borrowerId: string) => apiClient.get('/api/v1/portal/borrower/loans', { params: { borrowerId } }),
   borrowerEligibility: (borrowerId: string, programId: string, requestedAmount: number) =>
     apiClient.get('/api/v1/portal/borrower/eligibility', { params: { borrowerId, programId, requestedAmount } }),
+  borrowerInvoiceEligibility: (borrowerId: string, programId: string, invoiceId: string, requestedAmount: number) =>
+    apiClient.get('/api/v1/portal/borrower/invoice-eligibility', { params: { borrowerId, programId, invoiceId, requestedAmount } }),
   borrowerRequestLoan: (data: Record<string, unknown>) => apiClient.post('/api/v1/portal/borrower/loans/request', data),
+  anchorInvoices: (anchorId: string, programId?: string) =>
+    apiClient.get('/api/v1/portal/anchor/invoices', { params: { anchorId, ...(programId ? { programId } : {}) } }),
+  anchorCreateInvoice: (data: Record<string, unknown>) =>
+    apiClient.post('/api/v1/portal/anchor/invoices', data),
+  anchorInvoiceUpload: (anchorId: string, programId: string, file: File) => {
+    const formData = new FormData();
+    formData.append('anchorId', anchorId);
+    formData.append('programId', programId);
+    formData.append('file', file);
+    return apiClient.post('/api/v1/portal/anchor/invoices/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+  anchorVerifyInvoice: (invoiceId: string) =>
+    apiClient.post(`/api/v1/portal/anchor/invoices/${invoiceId}/verify`),
+  anchorConfirmInvoice: (invoiceId: string) =>
+    apiClient.post(`/api/v1/portal/anchor/invoices/${invoiceId}/confirm`),
 };
 
 export const integrationApi = {

@@ -14,7 +14,7 @@ spring:
         - id: program-service
           uri: lb://program-service
           predicates:
-            - Path=/api/v1/programs/**,/api/v1/anchors/**,/api/v1/borrowers/**,/api/v1/salary/**,/api/v1/portal/anchor/**
+            - Path=/api/v1/programs/**,/api/v1/anchors/**,/api/v1/borrowers/**,/api/v1/salary/**,/api/v1/invoices/**,/api/v1/portal/anchor/**
         - id: lending-service
           uri: lb://lending-service
           predicates:

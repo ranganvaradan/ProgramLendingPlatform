@@ -7,6 +7,7 @@ import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import LoanRequestPage from './pages/LoanRequestPage';
 import MyLoansPage from './pages/MyLoansPage';
+import InvoiceDiscountingPage from './pages/InvoiceDiscountingPage';
 import BorrowerLayout from './layouts/BorrowerLayout';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -25,6 +26,7 @@ function App() {
             <Route index element={<DashboardPage />} />
             <Route path="request-loan" element={<LoanRequestPage />} />
             <Route path="my-loans" element={<MyLoansPage />} />
+            <Route path="invoice-discounting" element={<InvoiceDiscountingPage />} />
           </Route>
         </Routes>
       </BrowserRouter>

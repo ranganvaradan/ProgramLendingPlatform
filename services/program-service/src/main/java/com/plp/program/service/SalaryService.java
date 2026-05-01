@@ -62,9 +62,12 @@ public class SalaryService {
         Program program = programRepository.findById(programId)
                 .orElseThrow(() -> new RuntimeException("Program not found: " + programId));
 
-        BigDecimal eligibilityPct = program.getMarginPercent() != null
-                ? new BigDecimal("100").subtract(program.getMarginPercent())
-                : new BigDecimal("50.00");
+        BigDecimal eligibilityPct;
+        if (program.getEligibilityRules() != null && program.getEligibilityRules().containsKey("eligibilityPercent")) {
+            eligibilityPct = new BigDecimal(program.getEligibilityRules().get("eligibilityPercent").toString());
+        } else {
+            eligibilityPct = new BigDecimal("50.00");
+        }
 
         List<EmployeeSalaryData> results = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(csvStream))) {

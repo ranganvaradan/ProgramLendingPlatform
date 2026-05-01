@@ -115,6 +115,47 @@ export interface EmployeeSalaryData {
   verified: boolean;
 }
 
+export type InvoiceStatus =
+  | 'UPLOADED'
+  | 'VERIFIED'
+  | 'ELIGIBLE'
+  | 'PARTIALLY_DISCOUNTED'
+  | 'FULLY_DISCOUNTED'
+  | 'EXPIRED'
+  | 'REJECTED';
+
+export interface Invoice {
+  id: string;
+  invoiceNumber: string;
+  anchorId: string;
+  borrowerId: string;
+  programId: string;
+  invoiceDate: string;
+  dueDate: string;
+  invoiceAmount: number;
+  taxAmount: number;
+  netAmount: number;
+  currency: string;
+  poNumber?: string;
+  poDate?: string;
+  poAmount?: number;
+  grnNumber?: string;
+  grnDate?: string;
+  threeWayMatch: boolean;
+  marginPercent: number;
+  eligibleAmount: number;
+  discountedAmount: number;
+  availableAmount: number;
+  status: InvoiceStatus;
+  verified: boolean;
+  anchorConfirmed: boolean;
+  source: string;
+  gstinSeller?: string;
+  gstinBuyer?: string;
+  paymentTerms?: string;
+  description?: string;
+}
+
 export interface EligibilityResult {
   borrowerId: string;
   programId: string;

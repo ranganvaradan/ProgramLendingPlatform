@@ -93,4 +93,105 @@ public class EligibilityService {
                 borrowerId, programId, eligible, eligibleAmount, requestedAmount);
         return result;
     }
+
+    public Map<String, Object> checkInvoiceDiscountingEligibility(UUID borrowerId, UUID programId,
+                                                                    UUID invoiceId, BigDecimal requestedAmount) {
+        Map<String, Object> result = new HashMap<>();
+        result.put("borrowerId", borrowerId.toString());
+        result.put("programId", programId.toString());
+        result.put("invoiceId", invoiceId.toString());
+        result.put("requestedAmount", requestedAmount);
+
+        List<String> reasons = new java.util.ArrayList<>();
+        boolean eligible = true;
+
+        // 1. Check for overdue loans
+        boolean hasOverdue = loanRepository.findByBorrowerId(borrowerId).stream()
+                .anyMatch(l -> l.getStatus() == LoanStatus.OVERDUE);
+        if (hasOverdue) {
+            eligible = false;
+            reasons.add("Borrower has overdue loans");
+        }
+
+        // 2. Fetch invoice data from program-service
+        BigDecimal availableAmount = BigDecimal.ZERO;
+        String invoiceStatus = "UNKNOWN";
+        try {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> invoiceResponse = restTemplate.getForObject(
+                    "http://program-service/api/v1/invoices/{invoiceId}",
+                    Map.class, invoiceId);
+            if (invoiceResponse != null) {
+                Object avail = invoiceResponse.get("availableAmount");
+                if (avail != null) {
+                    availableAmount = avail instanceof Number
+                            ? BigDecimal.valueOf(((Number) avail).doubleValue())
+                            : new BigDecimal(avail.toString());
+                }
+                Object status = invoiceResponse.get("status");
+                if (status != null) {
+                    invoiceStatus = status.toString();
+                }
+                Object verified = invoiceResponse.get("verified");
+                if (verified == null || !Boolean.TRUE.equals(verified)) {
+                    eligible = false;
+                    reasons.add("Invoice is not verified");
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Failed to fetch invoice data for invoice {}: {}", invoiceId, e.getMessage());
+            eligible = false;
+            reasons.add("Invoice data not available");
+        }
+
+        // 3. Check invoice status
+        if (!"VERIFIED".equals(invoiceStatus) && !"ELIGIBLE".equals(invoiceStatus)
+                && !"PARTIALLY_DISCOUNTED".equals(invoiceStatus)) {
+            eligible = false;
+            reasons.add("Invoice status not eligible: " + invoiceStatus);
+        }
+
+        // 4. Check available amount on invoice
+        if (availableAmount.compareTo(BigDecimal.ZERO) <= 0) {
+            eligible = false;
+            reasons.add("No available amount on this invoice");
+        }
+
+        // 5. Check requested amount
+        if (eligible && requestedAmount.compareTo(availableAmount) > 0) {
+            eligible = false;
+            reasons.add("Requested amount exceeds available: " + availableAmount);
+        }
+
+        // 6. Check borrower limit via program-service
+        try {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> limitResponse = restTemplate.getForObject(
+                    "http://program-service/api/v1/limits/{borrowerId}/{programId}",
+                    Map.class, borrowerId, programId);
+            if (limitResponse != null) {
+                Object availLimit = limitResponse.get("availableLimit");
+                if (availLimit != null) {
+                    BigDecimal limit = availLimit instanceof Number
+                            ? BigDecimal.valueOf(((Number) availLimit).doubleValue())
+                            : new BigDecimal(availLimit.toString());
+                    if (eligible && requestedAmount.compareTo(limit) > 0) {
+                        eligible = false;
+                        reasons.add("Requested amount exceeds borrower limit: " + limit);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Failed to fetch limit for borrower {}: {}", borrowerId, e.getMessage());
+        }
+
+        result.put("eligible", eligible);
+        result.put("availableAmount", availableAmount);
+        result.put("invoiceStatus", invoiceStatus);
+        result.put("reasons", reasons);
+
+        log.info("Invoice eligibility: borrower={} invoice={} eligible={} available={} requested={}",
+                borrowerId, invoiceId, eligible, availableAmount, requestedAmount);
+        return result;
+    }
 }

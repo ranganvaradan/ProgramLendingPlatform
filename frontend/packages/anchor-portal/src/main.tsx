@@ -7,6 +7,7 @@ import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import EmployeesPage from './pages/EmployeesPage';
 import SalaryUploadPage from './pages/SalaryUploadPage';
+import InvoiceUploadPage from './pages/InvoiceUploadPage';
 import AnchorLayout from './layouts/AnchorLayout';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -25,6 +26,7 @@ function App() {
             <Route index element={<DashboardPage />} />
             <Route path="employees" element={<EmployeesPage />} />
             <Route path="salary-upload" element={<SalaryUploadPage />} />
+            <Route path="invoice-upload" element={<InvoiceUploadPage />} />
           </Route>
         </Routes>
       </BrowserRouter>

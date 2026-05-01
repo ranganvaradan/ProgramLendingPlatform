@@ -46,6 +46,17 @@ public class BorrowerPortalController {
         return ResponseEntity.ok(Map.of("status", "SUCCESS", "data", result));
     }
 
+    @GetMapping("/invoice-eligibility")
+    public ResponseEntity<Map<String, Object>> checkInvoiceEligibility(
+            @RequestParam UUID borrowerId,
+            @RequestParam UUID programId,
+            @RequestParam UUID invoiceId,
+            @RequestParam BigDecimal requestedAmount) {
+        Map<String, Object> result = eligibilityService.checkInvoiceDiscountingEligibility(
+                borrowerId, programId, invoiceId, requestedAmount);
+        return ResponseEntity.ok(Map.of("status", "SUCCESS", "data", result));
+    }
+
     @PostMapping("/loans/request")
     public ResponseEntity<Map<String, Object>> requestLoan(@RequestBody LoanRequestDTO dto) {
         Loan loan = new Loan();

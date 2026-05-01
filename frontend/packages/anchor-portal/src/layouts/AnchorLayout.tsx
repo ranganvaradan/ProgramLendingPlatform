@@ -5,6 +5,7 @@ const navItems = [
   { path: '/', label: 'Dashboard', icon: '📊' },
   { path: '/employees', label: 'Employees', icon: '👥' },
   { path: '/salary-upload', label: 'Salary Upload', icon: '📤' },
+  { path: '/invoice-upload', label: 'Invoice Upload', icon: '🧾' },
 ];
 
 export default function AnchorLayout() {
