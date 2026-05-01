@@ -12,7 +12,7 @@ import java.util.UUID;
 public class AuditTrail {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column(name = "entity_type", nullable = false)

@@ -148,6 +148,19 @@ public class LoanService {
             throw new RuntimeException("Disbursement aborted: unable to block borrower limit. " + e.getMessage(), e);
         }
 
+        // Mark invoice as discounted for INVOICE_DISCOUNTING loans
+        if (loan.getInvoiceId() != null && "INVOICE_DISCOUNTING".equals(loan.getProductType())) {
+            try {
+                restTemplate.postForObject(
+                        "http://program-service/api/v1/invoices/{invoiceId}/mark-discounted",
+                        Map.of("amount", disbursedAmount), Map.class, loan.getInvoiceId());
+                log.info("Invoice {} marked discounted amount={}", loan.getInvoiceId(), disbursedAmount);
+            } catch (Exception e) {
+                log.error("Failed to mark invoice {} as discounted — aborting disbursement: {}", loan.getInvoiceId(), e.getMessage());
+                throw new RuntimeException("Disbursement aborted: unable to update invoice discounted amount. " + e.getMessage(), e);
+            }
+        }
+
         loanRepository.save(loan);
         log.info("Loan disbursed: {} amount={}", loan.getLoanNumber(), disbursedAmount);
         loanEventPublisher.publishLoanEvent("LOAN_DISBURSED", loan);

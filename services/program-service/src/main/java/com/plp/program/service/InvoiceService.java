@@ -176,7 +176,8 @@ public class InvoiceService {
 
     @Transactional
     public Invoice markDiscounted(UUID invoiceId, BigDecimal discountedAmount) {
-        Invoice invoice = getInvoice(invoiceId);
+        Invoice invoice = invoiceRepository.findByIdForUpdate(invoiceId)
+                .orElseThrow(() -> new RuntimeException("Invoice not found: " + invoiceId));
         BigDecimal newDiscounted = invoice.getDiscountedAmount().add(discountedAmount);
         invoice.setDiscountedAmount(newDiscounted);
         invoice.setAvailableAmount(invoice.getEligibleAmount().subtract(newDiscounted));

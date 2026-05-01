@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -70,5 +71,11 @@ public class InvoiceController {
     @PostMapping("/{id}/confirm")
     public ResponseEntity<Invoice> confirmInvoice(@PathVariable UUID id) {
         return ResponseEntity.ok(invoiceService.confirmInvoice(id));
+    }
+
+    @PostMapping("/{id}/mark-discounted")
+    public ResponseEntity<Invoice> markDiscounted(@PathVariable UUID id, @RequestBody Map<String, Object> body) {
+        BigDecimal amount = new BigDecimal(body.get("amount").toString());
+        return ResponseEntity.ok(invoiceService.markDiscounted(id, amount));
     }
 }
