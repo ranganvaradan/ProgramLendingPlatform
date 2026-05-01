@@ -53,7 +53,7 @@ public class EligibilityService {
 
         // 2b. Check concurrent loan limit and available limit
         int maxConcurrentLoans = 1;
-        BigDecimal availableLimit = BigDecimal.ZERO;
+        BigDecimal availableLimit = null;
         try {
             @SuppressWarnings("unchecked")
             Map<String, Object> limitResponse = restTemplate.getForObject(
@@ -81,7 +81,7 @@ public class EligibilityService {
             eligible = false;
             reasons.add("Maximum concurrent loans reached: " + activeLoans.size() + "/" + maxConcurrentLoans);
         }
-        if (eligible && availableLimit.compareTo(BigDecimal.ZERO) > 0 && requestedAmount.compareTo(availableLimit) > 0) {
+        if (eligible && availableLimit != null && requestedAmount.compareTo(availableLimit) > 0) {
             eligible = false;
             reasons.add("Requested amount exceeds available borrower limit: " + availableLimit);
         }

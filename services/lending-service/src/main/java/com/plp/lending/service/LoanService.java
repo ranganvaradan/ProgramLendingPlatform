@@ -137,6 +137,11 @@ public class LoanService {
         loan.setTotalRepayable(disbursedAmount.add(interest).add(fee));
         loan.setOutstandingAmount(loan.getTotalRepayable());
 
+        // Save loan state first — ensures DB commit succeeds before remote calls
+        loanRepository.save(loan);
+        entityManager.flush();
+        log.info("Loan disbursed (local): {} amount={}", loan.getLoanNumber(), disbursedAmount);
+
         // Block borrower limit in program-service — mandatory for disbursement
         try {
             restTemplate.postForObject(
@@ -144,7 +149,11 @@ public class LoanService {
                     null, Map.class, loan.getBorrowerId(), loan.getProgramId(), disbursedAmount);
             log.info("Limit blocked for borrower={} program={} amount={}", loan.getBorrowerId(), loan.getProgramId(), disbursedAmount);
         } catch (Exception e) {
-            log.error("Failed to block limit for borrower {} — aborting disbursement: {}", loan.getBorrowerId(), e.getMessage());
+            log.error("Failed to block limit for borrower {} — reverting disbursement: {}", loan.getBorrowerId(), e.getMessage());
+            loan.setStatus(LoanStatus.APPROVED);
+            loan.setDisbursedAmount(null);
+            loan.setDisbursementDate(null);
+            loanRepository.save(loan);
             throw new RuntimeException("Disbursement aborted: unable to block borrower limit. " + e.getMessage(), e);
         }
 
@@ -166,12 +175,16 @@ public class LoanService {
                     log.error("CRITICAL: Failed to release limit after invoice mark failure. borrower={} amount={}: {}",
                             loan.getBorrowerId(), disbursedAmount, releaseEx.getMessage());
                 }
+                // Revert loan state
+                loan.setStatus(LoanStatus.APPROVED);
+                loan.setDisbursedAmount(null);
+                loan.setDisbursementDate(null);
+                loanRepository.save(loan);
                 log.error("Failed to mark invoice {} as discounted — aborting disbursement: {}", loan.getInvoiceId(), e.getMessage());
                 throw new RuntimeException("Disbursement aborted: unable to update invoice discounted amount. " + e.getMessage(), e);
             }
         }
 
-        loanRepository.save(loan);
         log.info("Loan disbursed: {} amount={}", loan.getLoanNumber(), disbursedAmount);
         loanEventPublisher.publishLoanEvent("LOAN_DISBURSED", loan);
         loanEventPublisher.publishAuditEvent("LOAN", loan.getId().toString(), "DISBURSED",
