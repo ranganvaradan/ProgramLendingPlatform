@@ -50,6 +50,28 @@ public class EligibilityService {
             reasons.add("Borrower has overdue loans");
         }
 
+        // 2b. Check concurrent loan limit
+        int maxConcurrentLoans = 1;
+        try {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> limitResponse = restTemplate.getForObject(
+                    "http://program-service/api/v1/borrowers/{borrowerId}/limits",
+                    Map.class, borrowerId);
+            if (limitResponse != null && "SUCCESS".equals(limitResponse.get("status"))) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> limitData = (Map<String, Object>) limitResponse.get("data");
+                if (limitData != null && limitData.containsKey("maxConcurrentLoans")) {
+                    maxConcurrentLoans = ((Number) limitData.get("maxConcurrentLoans")).intValue();
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Failed to fetch limit config for borrower {}: {}", borrowerId, e.getMessage());
+        }
+        if (activeLoans.size() >= maxConcurrentLoans) {
+            eligible = false;
+            reasons.add("Maximum concurrent loans reached: " + activeLoans.size() + "/" + maxConcurrentLoans);
+        }
+
         // 3. Fetch salary data from program-service
         BigDecimal eligibleAmount = BigDecimal.ZERO;
         try {
@@ -167,22 +189,28 @@ public class EligibilityService {
         try {
             @SuppressWarnings("unchecked")
             Map<String, Object> limitResponse = restTemplate.getForObject(
-                    "http://program-service/api/v1/limits/{borrowerId}/{programId}",
-                    Map.class, borrowerId, programId);
-            if (limitResponse != null) {
-                Object availLimit = limitResponse.get("availableLimit");
-                if (availLimit != null) {
-                    BigDecimal limit = availLimit instanceof Number
-                            ? BigDecimal.valueOf(((Number) availLimit).doubleValue())
-                            : new BigDecimal(availLimit.toString());
-                    if (eligible && requestedAmount.compareTo(limit) > 0) {
-                        eligible = false;
-                        reasons.add("Requested amount exceeds borrower limit: " + limit);
+                    "http://program-service/api/v1/borrowers/{borrowerId}/limits",
+                    Map.class, borrowerId);
+            if (limitResponse != null && "SUCCESS".equals(limitResponse.get("status"))) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> limitData = (Map<String, Object>) limitResponse.get("data");
+                if (limitData != null) {
+                    Object availLimit = limitData.get("availableLimit");
+                    if (availLimit != null) {
+                        BigDecimal limit = availLimit instanceof Number
+                                ? BigDecimal.valueOf(((Number) availLimit).doubleValue())
+                                : new BigDecimal(availLimit.toString());
+                        if (eligible && requestedAmount.compareTo(limit) > 0) {
+                            eligible = false;
+                            reasons.add("Requested amount exceeds borrower limit: " + limit);
+                        }
                     }
                 }
             }
         } catch (Exception e) {
             log.warn("Failed to fetch limit for borrower {}: {}", borrowerId, e.getMessage());
+            eligible = false;
+            reasons.add("Borrower limit data not available");
         }
 
         result.put("eligible", eligible);

@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -55,5 +56,22 @@ public class BorrowerController {
                 .orElseThrow(() -> new RuntimeException("Borrower not found: " + id));
         BorrowerLimit limit = limitService.getLimit(id, borrower.getProgramId());
         return ResponseEntity.ok(Map.of("status", "SUCCESS", "data", limit));
+    }
+
+    @PostMapping("/{id}/limits")
+    public ResponseEntity<Map<String, Object>> assignLimit(
+            @PathVariable UUID id,
+            @RequestBody Map<String, Object> body) {
+        Borrower borrower = borrowerRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Borrower not found: " + id));
+        UUID programId = body.containsKey("programId")
+                ? UUID.fromString(body.get("programId").toString())
+                : borrower.getProgramId();
+        BigDecimal sanctionedLimit = new BigDecimal(body.get("sanctionedLimit").toString());
+        BigDecimal interestRate = body.containsKey("interestRate")
+                ? new BigDecimal(body.get("interestRate").toString())
+                : null;
+        BorrowerLimit limit = limitService.assignLimit(id, programId, sanctionedLimit, interestRate);
+        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("status", "SUCCESS", "data", limit));
     }
 }

@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
 import jakarta.persistence.EntityManager;
 
@@ -14,6 +15,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
@@ -23,9 +25,27 @@ public class LoanService {
 
     private final LoanRepository loanRepository;
     private final EntityManager entityManager;
+    private final RestTemplate restTemplate;
 
     @Transactional
     public Loan requestLoan(Loan loan) {
+        if (loan.getAnchorId() == null && loan.getProgramId() != null) {
+            try {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> programResponse = restTemplate.getForObject(
+                        "http://program-service/api/v1/programs/{programId}",
+                        Map.class, loan.getProgramId());
+                if (programResponse != null && "SUCCESS".equals(programResponse.get("status"))) {
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> programData = (Map<String, Object>) programResponse.get("data");
+                    if (programData != null && programData.containsKey("anchorId")) {
+                        loan.setAnchorId(UUID.fromString(programData.get("anchorId").toString()));
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("Failed to resolve anchorId from program {}: {}", loan.getProgramId(), e.getMessage());
+            }
+        }
         loan.setLoanNumber(generateLoanNumber(loan.getProductType()));
         loan.setRequestDate(LocalDate.now());
         loan.setStatus(LoanStatus.REQUESTED);
