@@ -74,6 +74,8 @@ public class EligibilityService {
             }
         } catch (Exception e) {
             log.warn("Failed to fetch limit config for borrower {}: {}", borrowerId, e.getMessage());
+            eligible = false;
+            reasons.add("Borrower limit data not available");
         }
         if (activeLoans.size() >= maxConcurrentLoans) {
             eligible = false;
