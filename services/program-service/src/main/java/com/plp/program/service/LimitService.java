@@ -110,7 +110,8 @@ public class LimitService {
 
     @Transactional
     public void freezeLimit(UUID borrowerId, UUID programId, String reason) {
-        BorrowerLimit limit = getLimit(borrowerId, programId);
+        BorrowerLimit limit = limitRepository.findByBorrowerIdAndProgramIdForUpdate(borrowerId, programId)
+                .orElseThrow(() -> new RuntimeException("Limit not found for borrower " + borrowerId + " in program " + programId));
         limit.setStatus(LimitStatus.FROZEN);
         limitRepository.save(limit);
         syncLimitToRedis(limit);

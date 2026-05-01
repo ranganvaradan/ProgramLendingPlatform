@@ -13,6 +13,7 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Slf4j
 @Service
@@ -20,6 +21,7 @@ import java.util.UUID;
 public class LoanService {
 
     private final LoanRepository loanRepository;
+    private static final AtomicLong SEQUENCE = new AtomicLong(System.currentTimeMillis());
 
     @Transactional
     public Loan requestLoan(Loan loan) {
@@ -145,6 +147,6 @@ public class LoanService {
 
     private String generateLoanNumber(String productType) {
         String prefix = "PDL".equals(productType) || "PAY_DAY_LOAN".equals(productType) ? "PDL" : "IDF";
-        return prefix + "-" + System.currentTimeMillis() + "-" + (int) (Math.random() * 1000);
+        return prefix + "-" + SEQUENCE.incrementAndGet();
     }
 }
