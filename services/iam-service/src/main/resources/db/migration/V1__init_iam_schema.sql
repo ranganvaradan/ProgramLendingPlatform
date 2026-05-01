@@ -20,6 +20,19 @@ CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_role ON users(role);
 CREATE INDEX idx_users_linked_entity ON users(linked_entity_id);
 
--- Seed default admin user (password: Admin@PLP2026)
+-- Seed default users
+-- Admin: admin@plp.com / Admin@PLP2026
 INSERT INTO users (email, password_hash, full_name, role, status)
-VALUES ('admin@plp.com', '$2b$10$CPfnMXAxCJlT9vOe9z6dI.s/77kG01xqHq2ZH8uX8R/vuP5To48ay', 'Platform Admin', 'PLATFORM_ADMIN', 'ACTIVE');
+VALUES ('admin@plp.com', '$2a$10$N7.761KVsumpiunzy5ckVecEQ3GFMQByFkWhsj3EEN1SMaprSzXPi', 'Platform Admin', 'PLATFORM_ADMIN', 'ACTIVE');
+
+-- Anchor: anchor@testcorp.com / Anchor@2026
+INSERT INTO users (email, password_hash, full_name, role, status)
+VALUES ('anchor@testcorp.com', '$2a$10$bcoUUI1exNZ.epASqjMUDuq5ofxPW4gKHPKICwC53KLVTqJdPRmyO', 'TestCorp Anchor Admin', 'ANCHOR_ADMIN', 'ACTIVE');
+
+-- Borrower (Employee): raj@testcorp.com / Raj@2026
+INSERT INTO users (email, password_hash, full_name, role, status)
+VALUES ('raj@testcorp.com', '$2a$10$tMXu3eoj4zbol2i5AlAReOcQ.m9U3LiMgtsi/ArYe.VS.tA14UlGi', 'Raj Kumar', 'BORROWER', 'ACTIVE');
+
+-- Borrower (Buyer): priya@buyerco.com / Priya@2026
+INSERT INTO users (email, password_hash, full_name, role, status)
+VALUES ('priya@buyerco.com', '$2a$10$RLe.h/ZHIZSpPGfPYdOv8O3.wKuYpnGVuqEdo0Fgpc9ce7D8mhs02', 'Priya Sharma', 'BORROWER', 'ACTIVE');
