@@ -78,7 +78,7 @@ export default function MainLayout() {
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-sm font-medium text-slate-200 truncate">{user?.fullName}</div>
-              <div className="text-[11px] text-slate-500">{user?.role?.replace('_', ' ')}</div>
+              <div className="text-[11px] text-slate-500">{user?.role?.replaceAll('_', ' ')}</div>
             </div>
           </div>
           <button onClick={logout}

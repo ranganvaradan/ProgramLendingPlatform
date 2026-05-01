@@ -135,7 +135,7 @@ export default function SettlementsPage() {
                     <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
                       l.productType === 'PAY_DAY_LOAN' ? 'bg-sky-50 text-sky-700' : 'bg-purple-50 text-purple-700'
                     }`}>
-                      {l.productType?.replace('_', ' ')}
+                      {l.productType?.replaceAll('_', ' ')}
                     </span>
                   </td>
                   <td className="px-5 py-3.5 text-right text-slate-700">{formatCurrency(l.disbursedAmount)}</td>

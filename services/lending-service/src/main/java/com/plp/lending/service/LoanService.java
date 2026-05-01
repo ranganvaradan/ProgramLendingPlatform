@@ -137,14 +137,15 @@ public class LoanService {
         loan.setTotalRepayable(disbursedAmount.add(interest).add(fee));
         loan.setOutstandingAmount(loan.getTotalRepayable());
 
-        // Block borrower limit in program-service
+        // Block borrower limit in program-service — mandatory for disbursement
         try {
             restTemplate.postForObject(
                     "http://program-service/api/v1/borrowers/{borrowerId}/limits/block?programId={programId}&amount={amount}",
                     null, Map.class, loan.getBorrowerId(), loan.getProgramId(), disbursedAmount);
             log.info("Limit blocked for borrower={} program={} amount={}", loan.getBorrowerId(), loan.getProgramId(), disbursedAmount);
         } catch (Exception e) {
-            log.warn("Failed to block limit for borrower {}: {}", loan.getBorrowerId(), e.getMessage());
+            log.error("Failed to block limit for borrower {} — aborting disbursement: {}", loan.getBorrowerId(), e.getMessage());
+            throw new RuntimeException("Disbursement aborted: unable to block borrower limit. " + e.getMessage(), e);
         }
 
         loanRepository.save(loan);
@@ -177,7 +178,9 @@ public class LoanService {
                         null, Map.class, loan.getBorrowerId(), loan.getProgramId(), loan.getDisbursedAmount());
                 log.info("Limit released for borrower={} program={} amount={}", loan.getBorrowerId(), loan.getProgramId(), loan.getDisbursedAmount());
             } catch (Exception e) {
-                log.warn("Failed to release limit for borrower {}: {}", loan.getBorrowerId(), e.getMessage());
+                log.error("CRITICAL: Failed to release limit for borrower={} program={} amount={}: {}. Publishing compensating event for retry.",
+                        loan.getBorrowerId(), loan.getProgramId(), loan.getDisbursedAmount(), e.getMessage());
+                loanEventPublisher.publishLoanEvent("LIMIT_RELEASE_REQUIRED", loan);
             }
         }
 

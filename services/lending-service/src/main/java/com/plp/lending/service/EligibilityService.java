@@ -35,8 +35,9 @@ public class EligibilityService {
         List<String> reasons = new java.util.ArrayList<>();
         boolean eligible = true;
 
-        // 1. Check active loans (should be none or within concurrent limit)
+        // 1. Check active loans per-program (should be none or within concurrent limit)
         List<Loan> activeLoans = loanRepository.findByBorrowerId(borrowerId).stream()
+                .filter(l -> l.getProgramId().equals(programId))
                 .filter(l -> l.getStatus() == LoanStatus.DISBURSED
                         || l.getStatus() == LoanStatus.REPAYMENT_DUE
                         || l.getStatus() == LoanStatus.OVERDUE)
