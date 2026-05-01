@@ -96,6 +96,35 @@ export interface Loan {
   dueDate: string;
 }
 
+export interface EmployeeSalaryData {
+  id: string;
+  borrowerId: string;
+  anchorId: string;
+  programId: string;
+  employeeCode: string;
+  payPeriod: string;
+  grossSalary: number;
+  netSalary: number;
+  daysWorked: number;
+  totalWorkingDays: number;
+  accumulatedSalary: number;
+  deductions: number;
+  eligibleAmount: number;
+  eligibilityPercent: number;
+  source: string;
+  verified: boolean;
+}
+
+export interface EligibilityResult {
+  borrowerId: string;
+  programId: string;
+  requestedAmount: number;
+  eligible: boolean;
+  eligibleAmount: number;
+  activeLoans: number;
+  reasons: string[];
+}
+
 export interface ApiResponse<T> {
   status: 'SUCCESS' | 'ERROR';
   data: T;

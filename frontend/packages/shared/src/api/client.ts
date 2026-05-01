@@ -73,6 +73,51 @@ export const loanApi = {
     apiClient.post(`/api/v1/loans/${id}/repay`, { amount }),
 };
 
+export const salaryApi = {
+  upload: (anchorId: string, programId: string, payPeriod: string, file: File) => {
+    const formData = new FormData();
+    formData.append('anchorId', anchorId);
+    formData.append('programId', programId);
+    formData.append('payPeriod', payPeriod);
+    formData.append('file', file);
+    return apiClient.post('/api/v1/salary/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+  create: (data: Record<string, unknown>) => apiClient.post('/api/v1/salary', data),
+  list: (params: Record<string, string>) => apiClient.get('/api/v1/salary', { params }),
+  getLatest: (borrowerId: string) => apiClient.get(`/api/v1/salary/borrower/${borrowerId}/latest`),
+};
+
+export const eligibilityApi = {
+  check: (borrowerId: string, programId: string, requestedAmount: number) =>
+    apiClient.get('/api/v1/loans/eligibility', { params: { borrowerId, programId, requestedAmount } }),
+};
+
+export const portalApi = {
+  anchorDashboard: () => apiClient.get('/api/v1/portal/anchor/dashboard'),
+  anchorPrograms: (anchorId: string) => apiClient.get('/api/v1/portal/anchor/programs', { params: { anchorId } }),
+  anchorEmployees: (anchorId: string, programId?: string) =>
+    apiClient.get('/api/v1/portal/anchor/employees', { params: { anchorId, ...(programId ? { programId } : {}) } }),
+  anchorSalary: (anchorId: string, payPeriod: string) =>
+    apiClient.get('/api/v1/portal/anchor/salary', { params: { anchorId, payPeriod } }),
+  anchorSalaryUpload: (anchorId: string, programId: string, payPeriod: string, file: File) => {
+    const formData = new FormData();
+    formData.append('anchorId', anchorId);
+    formData.append('programId', programId);
+    formData.append('payPeriod', payPeriod);
+    formData.append('file', file);
+    return apiClient.post('/api/v1/portal/anchor/salary/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+  borrowerDashboard: () => apiClient.get('/api/v1/portal/borrower/dashboard'),
+  borrowerLoans: (borrowerId: string) => apiClient.get('/api/v1/portal/borrower/loans', { params: { borrowerId } }),
+  borrowerEligibility: (borrowerId: string, programId: string, requestedAmount: number) =>
+    apiClient.get('/api/v1/portal/borrower/eligibility', { params: { borrowerId, programId, requestedAmount } }),
+  borrowerRequestLoan: (data: Record<string, unknown>) => apiClient.post('/api/v1/portal/borrower/loans/request', data),
+};
+
 export const integrationApi = {
   getSalaryInfo: (employeeId: string, anchorId: string) =>
     apiClient.get('/api/v1/integrations/hr/salary', { params: { employeeId, anchorId } }),

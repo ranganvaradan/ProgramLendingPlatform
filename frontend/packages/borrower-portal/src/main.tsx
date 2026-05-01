@@ -1,13 +1,34 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from '@plp/shared';
+import './index.css';
+import LoginPage from './pages/LoginPage';
+import DashboardPage from './pages/DashboardPage';
+import LoanRequestPage from './pages/LoanRequestPage';
+import MyLoansPage from './pages/MyLoansPage';
+import BorrowerLayout from './layouts/BorrowerLayout';
+
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
+  if (!user) return <Navigate to="/login" replace />;
+  return <>{children}</>;
+}
 
 function App() {
   return (
-    <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
-      <h1>Borrower Portal</h1>
-      <p>Request loans, view limits, track repayments.</p>
-      <p style={{ color: '#666' }}>Coming in Phase 2...</p>
-    </div>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/" element={<ProtectedRoute><BorrowerLayout /></ProtectedRoute>}>
+            <Route index element={<DashboardPage />} />
+            <Route path="request-loan" element={<LoanRequestPage />} />
+            <Route path="my-loans" element={<MyLoansPage />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 
