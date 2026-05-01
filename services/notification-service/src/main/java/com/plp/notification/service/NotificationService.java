@@ -86,6 +86,7 @@ public class NotificationService {
                 case SMS -> deliverSms(notification);
                 case WHATSAPP -> deliverWhatsApp(notification);
                 case PUSH -> deliverPush(notification);
+                case IN_APP -> log.info("[IN_APP] Notification stored for recipient: {}", notification.getRecipientId());
             }
             notification.setStatus(NotificationStatus.SENT);
             notification.setSentAt(OffsetDateTime.now());

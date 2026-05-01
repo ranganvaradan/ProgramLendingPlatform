@@ -38,8 +38,8 @@ CREATE INDEX idx_notifications_reference ON notifications(reference_type, refere
 
 -- Seed default templates
 INSERT INTO notification_templates (template_code, channel, subject, body_template, variables) VALUES
-('LOAN_REQUESTED', 'EMAIL', 'Loan Request Received - {{loanNumber}}', 'Dear {{borrowerName}}, Your loan request {{loanNumber}} for ₹{{amount}} has been received and is being processed.', '["borrowerName","loanNumber","amount"]'),
-('LOAN_APPROVED', 'EMAIL', 'Loan Approved - {{loanNumber}}', 'Dear {{borrowerName}}, Your loan {{loanNumber}} for ₹{{amount}} has been approved. Disbursement will be initiated shortly.', '["borrowerName","loanNumber","amount"]'),
-('LOAN_DISBURSED', 'EMAIL', 'Disbursement Completed - {{loanNumber}}', 'Dear {{borrowerName}}, ₹{{amount}} has been credited to your account for loan {{loanNumber}}. Due date: {{dueDate}}.', '["borrowerName","loanNumber","amount","dueDate"]'),
-('REPAYMENT_DUE', 'EMAIL', 'Repayment Due - {{loanNumber}}', 'Dear {{borrowerName}}, Repayment of ₹{{amount}} is due on {{dueDate}} for loan {{loanNumber}}.', '["borrowerName","loanNumber","amount","dueDate"]'),
-('REPAYMENT_RECEIVED', 'EMAIL', 'Payment Received - {{loanNumber}}', 'Dear {{borrowerName}}, We have received ₹{{amount}} against loan {{loanNumber}}. Outstanding: ₹{{outstanding}}.', '["borrowerName","loanNumber","amount","outstanding"]');
+('LOAN_REQUESTED', 'IN_APP', 'Loan Request Received - {{loanNumber}}', 'Dear {{borrowerName}}, Your loan request {{loanNumber}} for ₹{{amount}} has been received and is being processed.', '["borrowerName","loanNumber","amount"]'),
+('LOAN_APPROVED', 'IN_APP', 'Loan Approved - {{loanNumber}}', 'Dear {{borrowerName}}, Your loan {{loanNumber}} for ₹{{amount}} has been approved. Disbursement will be initiated shortly.', '["borrowerName","loanNumber","amount"]'),
+('LOAN_DISBURSED', 'IN_APP', 'Disbursement Completed - {{loanNumber}}', 'Dear {{borrowerName}}, ₹{{amount}} has been credited to your account for loan {{loanNumber}}. Due date: {{dueDate}}.', '["borrowerName","loanNumber","amount","dueDate"]'),
+('REPAYMENT_DUE', 'IN_APP', 'Repayment Due - {{loanNumber}}', 'Dear {{borrowerName}}, Repayment of ₹{{amount}} is due on {{dueDate}} for loan {{loanNumber}}.', '["borrowerName","loanNumber","amount","dueDate"]'),
+('REPAYMENT_RECEIVED', 'IN_APP', 'Payment Received - {{loanNumber}}', 'Dear {{borrowerName}}, We have received ₹{{amount}} against loan {{loanNumber}}. Outstanding: ₹{{outstanding}}.', '["borrowerName","loanNumber","amount","outstanding"]');

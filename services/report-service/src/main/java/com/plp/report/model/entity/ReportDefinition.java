@@ -15,7 +15,7 @@ import java.util.UUID;
 public class ReportDefinition {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column(name = "report_code", nullable = false, unique = true)

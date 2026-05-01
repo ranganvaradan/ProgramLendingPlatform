@@ -156,6 +156,16 @@ public class LoanService {
                         Map.of("amount", disbursedAmount), Map.class, loan.getInvoiceId());
                 log.info("Invoice {} marked discounted amount={}", loan.getInvoiceId(), disbursedAmount);
             } catch (Exception e) {
+                // Compensate: release the limit that was already blocked
+                try {
+                    restTemplate.postForObject(
+                            "http://program-service/api/v1/borrowers/{borrowerId}/limits/release?programId={programId}&amount={amount}",
+                            null, Map.class, loan.getBorrowerId(), loan.getProgramId(), disbursedAmount);
+                    log.info("Compensating limit release for borrower={} amount={}", loan.getBorrowerId(), disbursedAmount);
+                } catch (Exception releaseEx) {
+                    log.error("CRITICAL: Failed to release limit after invoice mark failure. borrower={} amount={}: {}",
+                            loan.getBorrowerId(), disbursedAmount, releaseEx.getMessage());
+                }
                 log.error("Failed to mark invoice {} as discounted — aborting disbursement: {}", loan.getInvoiceId(), e.getMessage());
                 throw new RuntimeException("Disbursement aborted: unable to update invoice discounted amount. " + e.getMessage(), e);
             }

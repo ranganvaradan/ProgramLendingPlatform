@@ -16,7 +16,7 @@ import java.util.UUID;
 public class NotificationTemplate {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column(name = "template_code", nullable = false, unique = true)

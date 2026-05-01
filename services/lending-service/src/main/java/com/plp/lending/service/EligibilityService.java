@@ -51,8 +51,9 @@ public class EligibilityService {
             reasons.add("Borrower has overdue loans");
         }
 
-        // 2b. Check concurrent loan limit
+        // 2b. Check concurrent loan limit and available limit
         int maxConcurrentLoans = 1;
+        BigDecimal availableLimit = BigDecimal.ZERO;
         try {
             @SuppressWarnings("unchecked")
             Map<String, Object> limitResponse = restTemplate.getForObject(
@@ -64,6 +65,12 @@ public class EligibilityService {
                 if (limitData != null && limitData.containsKey("maxConcurrentLoans")) {
                     maxConcurrentLoans = ((Number) limitData.get("maxConcurrentLoans")).intValue();
                 }
+                if (limitData != null && limitData.containsKey("availableLimit")) {
+                    Object availLimitObj = limitData.get("availableLimit");
+                    availableLimit = availLimitObj instanceof Number
+                            ? BigDecimal.valueOf(((Number) availLimitObj).doubleValue())
+                            : new BigDecimal(availLimitObj.toString());
+                }
             }
         } catch (Exception e) {
             log.warn("Failed to fetch limit config for borrower {}: {}", borrowerId, e.getMessage());
@@ -71,6 +78,10 @@ public class EligibilityService {
         if (activeLoans.size() >= maxConcurrentLoans) {
             eligible = false;
             reasons.add("Maximum concurrent loans reached: " + activeLoans.size() + "/" + maxConcurrentLoans);
+        }
+        if (eligible && availableLimit.compareTo(BigDecimal.ZERO) > 0 && requestedAmount.compareTo(availableLimit) > 0) {
+            eligible = false;
+            reasons.add("Requested amount exceeds available borrower limit: " + availableLimit);
         }
 
         // 3. Fetch salary data from program-service

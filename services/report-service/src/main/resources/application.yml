@@ -1,11 +1,14 @@
 server:
   port: 8086
+  error:
+    include-message: always
+    include-stacktrace: on_param
 
 spring:
   application:
     name: report-service
   datasource:
-    url: jdbc:postgresql://localhost:5432/plp_db?currentSchema=plp_report
+    url: jdbc:postgresql://localhost:5432/plp_db?currentSchema=plp_report&stringtype=unspecified
     username: plp_admin
     password: plp_secret_2026
     driver-class-name: org.postgresql.Driver

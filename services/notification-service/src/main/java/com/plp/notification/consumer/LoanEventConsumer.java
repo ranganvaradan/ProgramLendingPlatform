@@ -31,8 +31,8 @@ public class LoanEventConsumer {
             String dueDate = (String) event.getOrDefault("dueDate", "");
             String outstanding = event.getOrDefault("outstanding", "0").toString();
 
-            if (borrowerId == null || borrowerEmail == null) {
-                log.warn("Skipping notification — missing borrowerId or email for event: {}", eventType);
+            if (borrowerId == null) {
+                log.warn("Skipping notification — missing borrowerId for event: {}", eventType);
                 return;
             }
 
