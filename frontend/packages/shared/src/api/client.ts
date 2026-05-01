@@ -23,6 +23,7 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem('plp_access_token');
       localStorage.removeItem('plp_refresh_token');
+      localStorage.removeItem('plp_user');
       window.location.href = '/login';
     }
     return Promise.reject(error);

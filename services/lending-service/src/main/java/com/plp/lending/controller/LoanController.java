@@ -1,5 +1,6 @@
 package com.plp.lending.controller;
 
+import com.plp.lending.model.dto.LoanRequestDTO;
 import com.plp.lending.model.entity.Loan;
 import com.plp.lending.service.LoanService;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +21,18 @@ public class LoanController {
     private final LoanService loanService;
 
     @PostMapping
-    public ResponseEntity<Map<String, Object>> requestLoan(@RequestBody Loan loan) {
+    public ResponseEntity<Map<String, Object>> requestLoan(@RequestBody LoanRequestDTO dto) {
+        Loan loan = new Loan();
+        loan.setBorrowerId(dto.getBorrowerId());
+        loan.setProgramId(dto.getProgramId());
+        loan.setAnchorId(dto.getAnchorId());
+        loan.setProductType(dto.getProductType());
+        loan.setRequestedAmount(dto.getRequestedAmount());
+        loan.setInterestRate(dto.getInterestRate());
+        loan.setTenureDays(dto.getTenureDays());
+        loan.setProcessingFee(dto.getProcessingFee());
+        loan.setInvoiceId(dto.getInvoiceId());
+        loan.setSalaryDataId(dto.getSalaryDataId());
         Loan created = loanService.requestLoan(loan);
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("status", "SUCCESS", "data", created));
     }

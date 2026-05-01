@@ -92,6 +92,11 @@ public class SalaryService {
                 int totalWorkingDays = parts.length > 5 ? Integer.parseInt(parts[5].trim()) : 30;
                 BigDecimal deductions = parts.length > 6 ? new BigDecimal(parts[6].trim().replace("\"", "")) : BigDecimal.ZERO;
 
+                if (totalWorkingDays <= 0) {
+                    log.warn("Skipping row {}: totalWorkingDays must be > 0, got {}", rowNum, totalWorkingDays);
+                    continue;
+                }
+
                 Borrower borrower = borrowerRepository.findByBorrowerCode(borrowerCode)
                         .orElse(null);
                 if (borrower == null) {
@@ -157,6 +162,9 @@ public class SalaryService {
     }
 
     private void computeEligibility(EmployeeSalaryData data) {
+        if (data.getTotalWorkingDays() == null || data.getTotalWorkingDays() <= 0) {
+            throw new RuntimeException("Total working days must be greater than 0");
+        }
         if (data.getAccumulatedSalary() == null || data.getAccumulatedSalary().compareTo(BigDecimal.ZERO) == 0) {
             BigDecimal accumulated = data.getNetSalary()
                     .multiply(BigDecimal.valueOf(data.getDaysWorked()))
