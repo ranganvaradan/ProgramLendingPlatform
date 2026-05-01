@@ -43,8 +43,8 @@ public class EligibilityService {
                         || l.getStatus() == LoanStatus.OVERDUE)
                 .toList();
 
-        // 2. Check for overdue loans
-        boolean hasOverdue = activeLoans.stream()
+        // 2. Check for overdue loans across ALL programs (BRD PDL-RP-09)
+        boolean hasOverdue = loanRepository.findByBorrowerId(borrowerId).stream()
                 .anyMatch(l -> l.getStatus() == LoanStatus.OVERDUE);
         if (hasOverdue) {
             eligible = false;

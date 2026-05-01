@@ -225,8 +225,13 @@ public class LoanService {
                     } catch (Exception e) {
                         log.error("CRITICAL: Failed to release limit for borrower={} program={} amount={}: {}. Publishing compensating event.",
                                 borrowerId, programId, releaseAmount, e.getMessage());
-                        loanEventPublisher.publishLoanEvent("LIMIT_RELEASE_REQUIRED",
-                                loanRepository.findById(closedLoanId).orElse(null));
+                        Loan failedLoan = loanRepository.findById(closedLoanId).orElse(null);
+                        if (failedLoan != null) {
+                            loanEventPublisher.publishLoanEvent("LIMIT_RELEASE_REQUIRED", failedLoan);
+                        } else {
+                            log.error("CRITICAL: Loan {} not found for LIMIT_RELEASE_REQUIRED event. Manual limit release needed for borrower={} program={} amount={}",
+                                    closedLoanId, borrowerId, programId, releaseAmount);
+                        }
                     }
                 }
             });
