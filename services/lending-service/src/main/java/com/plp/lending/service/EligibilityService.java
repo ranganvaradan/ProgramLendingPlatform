@@ -120,8 +120,12 @@ public class EligibilityService {
             reasons.add("Requested amount exceeds eligible amount: " + eligibleAmount);
         }
 
+        BigDecimal effectiveEligible = eligibleAmount;
+        if (availableLimit != null && availableLimit.compareTo(effectiveEligible) < 0) {
+            effectiveEligible = availableLimit;
+        }
         result.put("eligible", eligible);
-        result.put("eligibleAmount", eligibleAmount);
+        result.put("eligibleAmount", effectiveEligible);
         result.put("activeLoans", activeLoans.size());
         result.put("reasons", reasons);
 

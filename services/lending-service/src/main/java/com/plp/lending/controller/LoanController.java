@@ -9,10 +9,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @RestController
@@ -61,11 +63,16 @@ public class LoanController {
         return ResponseEntity.ok(Map.of("status", "SUCCESS", "data", loans));
     }
 
+    private static final Set<String> ADMIN_ROLES = Set.of("PLATFORM_ADMIN", "PROGRAM_MANAGER", "CREDIT_ANALYST");
+    private static final Set<String> DISBURSE_ROLES = Set.of("PLATFORM_ADMIN", "PROGRAM_MANAGER", "TREASURY");
+
     @PostMapping("/{id}/approve")
     public ResponseEntity<Map<String, Object>> approveLoan(
             @PathVariable UUID id,
             @RequestHeader("X-User-Id") String userId,
+            @RequestHeader(value = "X-User-Roles", defaultValue = "") String roles,
             @RequestBody(required = false) Map<String, Object> body) {
+        requireRole(roles, ADMIN_ROLES, "approve");
         BigDecimal sanctionedAmount = body != null && body.containsKey("sanctionedAmount")
                 ? new BigDecimal(body.get("sanctionedAmount").toString()) : null;
         Loan approved = loanService.approveLoan(id, UUID.fromString(userId), sanctionedAmount);
@@ -75,7 +82,9 @@ public class LoanController {
     @PostMapping("/{id}/reject")
     public ResponseEntity<Map<String, Object>> rejectLoan(
             @PathVariable UUID id,
+            @RequestHeader(value = "X-User-Roles", defaultValue = "") String roles,
             @RequestBody Map<String, String> body) {
+        requireRole(roles, ADMIN_ROLES, "reject");
         Loan rejected = loanService.rejectLoan(id, body.get("reason"));
         return ResponseEntity.ok(Map.of("status", "SUCCESS", "data", rejected));
     }
@@ -83,10 +92,24 @@ public class LoanController {
     @PostMapping("/{id}/disburse")
     public ResponseEntity<Map<String, Object>> disburseLoan(
             @PathVariable UUID id,
+            @RequestHeader(value = "X-User-Roles", defaultValue = "") String roles,
             @RequestBody Map<String, Object> body) {
+        requireRole(roles, DISBURSE_ROLES, "disburse");
         BigDecimal amount = new BigDecimal(body.get("amount").toString());
         Loan disbursed = loanService.markDisbursed(id, amount);
         return ResponseEntity.ok(Map.of("status", "SUCCESS", "data", disbursed));
+    }
+
+    private void requireRole(String rolesHeader, Set<String> allowed, String action) {
+        if (rolesHeader == null || rolesHeader.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No roles provided for " + action);
+        }
+        boolean hasRole = java.util.Arrays.stream(rolesHeader.split(","))
+                .map(String::trim)
+                .anyMatch(allowed::contains);
+        if (!hasRole) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Insufficient role for " + action + ". Required: " + allowed);
+        }
     }
 
     @PostMapping("/{id}/repay")
