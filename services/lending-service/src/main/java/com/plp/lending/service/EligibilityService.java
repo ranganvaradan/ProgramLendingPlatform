@@ -55,8 +55,8 @@ public class EligibilityService {
         try {
             @SuppressWarnings("unchecked")
             Map<String, Object> limitResponse = restTemplate.getForObject(
-                    "http://program-service/api/v1/borrowers/{borrowerId}/limits",
-                    Map.class, borrowerId);
+                    "http://program-service/api/v1/borrowers/{borrowerId}/limits?programId={programId}",
+                    Map.class, borrowerId, programId);
             if (limitResponse != null && "SUCCESS".equals(limitResponse.get("status"))) {
                 @SuppressWarnings("unchecked")
                 Map<String, Object> limitData = (Map<String, Object>) limitResponse.get("data");
@@ -189,8 +189,8 @@ public class EligibilityService {
         try {
             @SuppressWarnings("unchecked")
             Map<String, Object> limitResponse = restTemplate.getForObject(
-                    "http://program-service/api/v1/borrowers/{borrowerId}/limits",
-                    Map.class, borrowerId);
+                    "http://program-service/api/v1/borrowers/{borrowerId}/limits?programId={programId}",
+                    Map.class, borrowerId, programId);
             if (limitResponse != null && "SUCCESS".equals(limitResponse.get("status"))) {
                 @SuppressWarnings("unchecked")
                 Map<String, Object> limitData = (Map<String, Object>) limitResponse.get("data");

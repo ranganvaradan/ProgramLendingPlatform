@@ -51,10 +51,33 @@ public class BorrowerController {
     }
 
     @GetMapping("/{id}/limits")
-    public ResponseEntity<Map<String, Object>> getBorrowerLimits(@PathVariable UUID id) {
-        Borrower borrower = borrowerRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Borrower not found: " + id));
-        BorrowerLimit limit = limitService.getLimit(id, borrower.getProgramId());
+    public ResponseEntity<Map<String, Object>> getBorrowerLimits(
+            @PathVariable UUID id,
+            @RequestParam(required = false) UUID programId) {
+        if (programId == null) {
+            Borrower borrower = borrowerRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Borrower not found: " + id));
+            programId = borrower.getProgramId();
+        }
+        BorrowerLimit limit = limitService.getLimit(id, programId);
+        return ResponseEntity.ok(Map.of("status", "SUCCESS", "data", limit));
+    }
+
+    @PostMapping("/{id}/limits/block")
+    public ResponseEntity<Map<String, Object>> blockLimit(
+            @PathVariable UUID id,
+            @RequestParam UUID programId,
+            @RequestParam BigDecimal amount) {
+        BorrowerLimit limit = limitService.blockLimit(id, programId, amount);
+        return ResponseEntity.ok(Map.of("status", "SUCCESS", "data", limit));
+    }
+
+    @PostMapping("/{id}/limits/release")
+    public ResponseEntity<Map<String, Object>> releaseLimit(
+            @PathVariable UUID id,
+            @RequestParam UUID programId,
+            @RequestParam BigDecimal amount) {
+        BorrowerLimit limit = limitService.releaseLimit(id, programId, amount);
         return ResponseEntity.ok(Map.of("status", "SUCCESS", "data", limit));
     }
 

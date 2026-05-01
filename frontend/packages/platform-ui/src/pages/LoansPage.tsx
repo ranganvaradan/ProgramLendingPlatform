@@ -16,42 +16,80 @@ export default function LoansPage() {
     });
   }, []);
 
-  if (loading) return <div className="text-gray-500">Loading loans...</div>;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-pulse text-slate-400 text-sm">Loading loans...</div>
+      </div>
+    );
+  }
+
+  const formatCurrency = (amount: number) =>
+    new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount);
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">Loans</h2>
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-slate-800">Loans</h1>
+        <p className="text-sm text-slate-500 mt-1">All loan applications and active loans</p>
+      </div>
+
+      {/* Summary Stats */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+        {[
+          { label: 'Total', value: loans.length, color: 'text-slate-700' },
+          { label: 'Active', value: loans.filter(l => ['DISBURSED', 'REPAYMENT_DUE'].includes(l.status)).length, color: 'text-emerald-600' },
+          { label: 'Pending', value: loans.filter(l => ['REQUESTED', 'APPROVED'].includes(l.status)).length, color: 'text-amber-600' },
+          { label: 'Overdue', value: loans.filter(l => l.status === 'OVERDUE').length, color: 'text-red-600' },
+        ].map((s) => (
+          <div key={s.label} className="bg-white rounded-lg border border-slate-200 px-4 py-3">
+            <div className={`text-xl font-bold ${s.color}`}>{s.value}</div>
+            <div className="text-xs text-slate-500">{s.label}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50">
-            <tr className="text-left text-gray-500 border-b">
-              <th className="px-4 py-3">Loan Number</th>
-              <th className="px-4 py-3">Product</th>
-              <th className="px-4 py-3">Amount</th>
-              <th className="px-4 py-3">Interest</th>
-              <th className="px-4 py-3">Tenure</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Due Date</th>
+          <thead>
+            <tr className="bg-slate-50 border-b border-slate-200">
+              <th className="px-5 py-3.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Loan</th>
+              <th className="px-5 py-3.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Product</th>
+              <th className="px-5 py-3.5 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Amount</th>
+              <th className="px-5 py-3.5 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Rate</th>
+              <th className="px-5 py-3.5 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Tenure</th>
+              <th className="px-5 py-3.5 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
+              <th className="px-5 py-3.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Due Date</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-slate-100">
             {loans.map((l) => (
-              <tr key={l.id} className="border-b border-gray-100 hover:bg-gray-50">
-                <td className="px-4 py-3 font-mono text-xs">{l.loanNumber}</td>
-                <td className="px-4 py-3">{l.productType === 'PAY_DAY_LOAN' ? 'PDL' : 'ID'}</td>
-                <td className="px-4 py-3">₹{l.requestedAmount?.toLocaleString()}</td>
-                <td className="px-4 py-3">{l.interestRate}%</td>
-                <td className="px-4 py-3">{l.tenureDays}d</td>
-                <td className="px-4 py-3">
-                  <span className={`px-2 py-0.5 rounded text-xs font-medium ${loanStatusColor(l.status)}`}>
-                    {l.status}
+              <tr key={l.id} className="hover:bg-slate-50/80">
+                <td className="px-5 py-3.5">
+                  <div className="font-mono text-xs font-medium text-slate-700">{l.loanNumber}</div>
+                </td>
+                <td className="px-5 py-3.5">
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                    l.productType === 'PAY_DAY_LOAN' ? 'bg-blue-50 text-blue-700' : 'bg-purple-50 text-purple-700'
+                  }`}>
+                    {l.productType === 'PAY_DAY_LOAN' ? 'PDL' : 'ID'}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-xs">{l.dueDate || '-'}</td>
+                <td className="px-5 py-3.5 text-right font-medium text-slate-700">{formatCurrency(l.requestedAmount)}</td>
+                <td className="px-5 py-3.5 text-right text-slate-600">{l.interestRate}%</td>
+                <td className="px-5 py-3.5 text-center text-slate-600">{l.tenureDays}d</td>
+                <td className="px-5 py-3.5 text-center">
+                  <LoanStatusBadge status={l.status} />
+                </td>
+                <td className="px-5 py-3.5 text-slate-500 text-xs">{l.dueDate || '—'}</td>
               </tr>
             ))}
             {loans.length === 0 && (
-              <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400">No loans found</td></tr>
+              <tr>
+                <td colSpan={7} className="px-5 py-12 text-center">
+                  <div className="text-slate-400 text-sm">No loans found</div>
+                </td>
+              </tr>
             )}
           </tbody>
         </table>
@@ -60,14 +98,19 @@ export default function LoansPage() {
   );
 }
 
-function loanStatusColor(status: string) {
-  switch (status) {
-    case 'DISBURSED': return 'bg-green-100 text-green-700';
-    case 'APPROVED': return 'bg-blue-100 text-blue-700';
-    case 'REQUESTED': return 'bg-yellow-100 text-yellow-700';
-    case 'OVERDUE': return 'bg-red-100 text-red-700';
-    case 'CLOSED': return 'bg-gray-100 text-gray-700';
-    case 'REJECTED': return 'bg-red-100 text-red-600';
-    default: return 'bg-gray-100 text-gray-700';
-  }
+function LoanStatusBadge({ status }: { status: string }) {
+  const styles: Record<string, string> = {
+    DISBURSED: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/20',
+    APPROVED: 'bg-blue-50 text-blue-700 ring-1 ring-blue-600/20',
+    REQUESTED: 'bg-amber-50 text-amber-700 ring-1 ring-amber-600/20',
+    OVERDUE: 'bg-red-50 text-red-700 ring-1 ring-red-600/20',
+    CLOSED: 'bg-slate-50 text-slate-600 ring-1 ring-slate-500/20',
+    REJECTED: 'bg-red-50 text-red-600 ring-1 ring-red-500/20',
+    REPAYMENT_DUE: 'bg-orange-50 text-orange-700 ring-1 ring-orange-600/20',
+  };
+  return (
+    <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold ${styles[status] || 'bg-slate-50 text-slate-600'}`}>
+      {status.replace('_', ' ')}
+    </span>
+  );
 }

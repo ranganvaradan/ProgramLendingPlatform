@@ -137,6 +137,16 @@ public class LoanService {
         loan.setTotalRepayable(disbursedAmount.add(interest).add(fee));
         loan.setOutstandingAmount(loan.getTotalRepayable());
 
+        // Block borrower limit in program-service
+        try {
+            restTemplate.postForObject(
+                    "http://program-service/api/v1/borrowers/{borrowerId}/limits/block?programId={programId}&amount={amount}",
+                    null, Map.class, loan.getBorrowerId(), loan.getProgramId(), disbursedAmount);
+            log.info("Limit blocked for borrower={} program={} amount={}", loan.getBorrowerId(), loan.getProgramId(), disbursedAmount);
+        } catch (Exception e) {
+            log.warn("Failed to block limit for borrower {}: {}", loan.getBorrowerId(), e.getMessage());
+        }
+
         loanRepository.save(loan);
         log.info("Loan disbursed: {} amount={}", loan.getLoanNumber(), disbursedAmount);
         loanEventPublisher.publishLoanEvent("LOAN_DISBURSED", loan);
@@ -159,6 +169,16 @@ public class LoanService {
             loan.setStatus(LoanStatus.CLOSED);
             loan.setClosureDate(LocalDate.now());
             log.info("Loan closed: {}", loan.getLoanNumber());
+
+            // Release borrower limit in program-service
+            try {
+                restTemplate.postForObject(
+                        "http://program-service/api/v1/borrowers/{borrowerId}/limits/release?programId={programId}&amount={amount}",
+                        null, Map.class, loan.getBorrowerId(), loan.getProgramId(), loan.getDisbursedAmount());
+                log.info("Limit released for borrower={} program={} amount={}", loan.getBorrowerId(), loan.getProgramId(), loan.getDisbursedAmount());
+            } catch (Exception e) {
+                log.warn("Failed to release limit for borrower {}: {}", loan.getBorrowerId(), e.getMessage());
+            }
         }
 
         loanRepository.save(loan);
