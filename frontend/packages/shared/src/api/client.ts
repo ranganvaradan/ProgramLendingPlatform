@@ -21,10 +21,13 @@ apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('plp_access_token');
-      localStorage.removeItem('plp_refresh_token');
-      localStorage.removeItem('plp_user');
-      window.location.href = '/login';
+      const requestUrl = error.config?.url || '';
+      if (!requestUrl.includes('/api/v1/auth/login')) {
+        localStorage.removeItem('plp_access_token');
+        localStorage.removeItem('plp_refresh_token');
+        localStorage.removeItem('plp_user');
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }

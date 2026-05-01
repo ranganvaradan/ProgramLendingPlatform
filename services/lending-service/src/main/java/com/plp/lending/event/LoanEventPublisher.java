@@ -60,6 +60,29 @@ public class LoanEventPublisher {
         }, "audit event " + entityType + " " + action);
     }
 
+    /**
+     * Publishes immediately regardless of transaction state.
+     * Use for compensating events that must fire even if the transaction rolls back.
+     */
+    public void publishLoanEventImmediate(String eventType, Loan loan) {
+        try {
+            Map<String, Object> event = new HashMap<>();
+            event.put("eventType", eventType);
+            event.put("loanId", loan.getId().toString());
+            event.put("loanNumber", loan.getLoanNumber());
+            event.put("borrowerId", loan.getBorrowerId().toString());
+            event.put("programId", loan.getProgramId() != null ? loan.getProgramId().toString() : null);
+            event.put("anchorId", loan.getAnchorId() != null ? loan.getAnchorId().toString() : null);
+            event.put("productType", loan.getProductType());
+            event.put("amount", loan.getRequestedAmount() != null ? loan.getRequestedAmount().toString() : "0");
+            event.put("status", loan.getStatus() != null ? loan.getStatus().name() : null);
+            rabbitTemplate.convertAndSend(RabbitMQConfig.LOAN_EVENT_EXCHANGE, "loan." + eventType.toLowerCase(), event);
+            log.info("Published immediate loan event: {} for {}", eventType, loan.getLoanNumber());
+        } catch (Exception e) {
+            log.error("CRITICAL: Failed to publish immediate {}: {}", eventType, e.getMessage());
+        }
+    }
+
     private void publishAfterCommit(Runnable publishAction, String description) {
         if (TransactionSynchronizationManager.isSynchronizationActive()) {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {

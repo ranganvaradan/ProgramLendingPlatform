@@ -176,7 +176,7 @@ public class LoanService {
                 } catch (Exception releaseEx) {
                     log.error("CRITICAL: Failed to release limit after invoice mark failure. borrower={} amount={}: {}",
                             loan.getBorrowerId(), disbursedAmount, releaseEx.getMessage());
-                    loanEventPublisher.publishLoanEvent("LIMIT_RELEASE_REQUIRED", loan);
+                    loanEventPublisher.publishLoanEventImmediate("LIMIT_RELEASE_REQUIRED", loan);
                 }
                 // Revert loan state
                 loan.setStatus(LoanStatus.APPROVED);
