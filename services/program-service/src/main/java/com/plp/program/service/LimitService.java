@@ -11,6 +11,9 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
@@ -47,7 +50,7 @@ public class LimitService {
                 .build();
 
         limit = limitRepository.save(limit);
-        syncLimitToRedis(limit);
+        syncLimitToRedisAfterCommit(limit);
         log.info("Limit assigned: borrower={} program={} limit={}", borrowerId, programId, sanctionedLimit);
         return limit;
     }
@@ -81,7 +84,7 @@ public class LimitService {
         limit.setAvailableLimit(limit.getSanctionedLimit().subtract(limit.getUtilizedLimit()));
         limit.setActiveLoanCount(limit.getActiveLoanCount() + 1);
         limitRepository.save(limit);
-        syncLimitToRedis(limit);
+        syncLimitToRedisAfterCommit(limit);
 
         log.info("Limit blocked: borrower={} program={} amount={} newAvailable={}", borrowerId, programId, amount, limit.getAvailableLimit());
         return limit;
@@ -102,7 +105,7 @@ public class LimitService {
         limit.setAvailableLimit(limit.getSanctionedLimit().subtract(limit.getUtilizedLimit()));
         limit.setActiveLoanCount(Math.max(0, limit.getActiveLoanCount() - 1));
         limitRepository.save(limit);
-        syncLimitToRedis(limit);
+        syncLimitToRedisAfterCommit(limit);
 
         log.info("Limit released: borrower={} program={} amount={} newAvailable={}", borrowerId, programId, amount, limit.getAvailableLimit());
         return limit;
@@ -114,8 +117,17 @@ public class LimitService {
                 .orElseThrow(() -> new RuntimeException("Limit not found for borrower " + borrowerId + " in program " + programId));
         limit.setStatus(LimitStatus.FROZEN);
         limitRepository.save(limit);
-        syncLimitToRedis(limit);
+        syncLimitToRedisAfterCommit(limit);
         log.warn("Limit frozen: borrower={} program={} reason={}", borrowerId, programId, reason);
+    }
+
+    private void syncLimitToRedisAfterCommit(BorrowerLimit limit) {
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                syncLimitToRedis(limit);
+            }
+        });
     }
 
     private void syncLimitToRedis(BorrowerLimit limit) {

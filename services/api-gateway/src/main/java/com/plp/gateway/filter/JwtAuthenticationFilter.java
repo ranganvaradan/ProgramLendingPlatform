@@ -45,12 +45,14 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
         INTERNAL_HEADERS.forEach(h -> sanitized.headers(headers -> headers.remove(h)));
         ServerWebExchange sanitizedExchange = exchange.mutate().request(sanitized.build()).build();
 
-        if (isOpenEndpoint(path)) {
+        String authHeader = sanitizedExchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+        boolean isOpen = isOpenEndpoint(path);
+
+        if (isOpen && (authHeader == null || !authHeader.startsWith("Bearer "))) {
             return chain.filter(sanitizedExchange);
         }
 
-        String authHeader = sanitizedExchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        if (!isOpen && (authHeader == null || !authHeader.startsWith("Bearer "))) {
             sanitizedExchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
             return sanitizedExchange.getResponse().setComplete();
         }
@@ -72,6 +74,9 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
 
             return chain.filter(sanitizedExchange.mutate().request(mutatedRequest).build());
         } catch (Exception e) {
+            if (isOpen) {
+                return chain.filter(sanitizedExchange);
+            }
             sanitizedExchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
             return sanitizedExchange.getResponse().setComplete();
         }

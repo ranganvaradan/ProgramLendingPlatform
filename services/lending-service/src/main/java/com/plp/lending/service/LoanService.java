@@ -100,6 +100,9 @@ public class LoanService {
     @Transactional
     public Loan recordRepayment(UUID loanId, BigDecimal repaidAmount) {
         Loan loan = getLoan(loanId);
+        if (loan.getStatus() != LoanStatus.DISBURSED && loan.getStatus() != LoanStatus.REPAYMENT_DUE && loan.getStatus() != LoanStatus.OVERDUE) {
+            throw new RuntimeException("Repayment cannot be recorded. Loan status: " + loan.getStatus());
+        }
         loan.setTotalRepaid(loan.getTotalRepaid().add(repaidAmount));
         loan.setOutstandingAmount(loan.getTotalRepayable().subtract(loan.getTotalRepaid()));
 
