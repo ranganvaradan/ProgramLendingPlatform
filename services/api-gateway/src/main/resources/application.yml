@@ -6,6 +6,12 @@ spring:
     name: api-gateway
   cloud:
     gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowed-origin-patterns: "*"
+            allowed-methods: "*"
+            allowed-headers: "*"
       routes:
         - id: iam-service
           uri: lb://iam-service

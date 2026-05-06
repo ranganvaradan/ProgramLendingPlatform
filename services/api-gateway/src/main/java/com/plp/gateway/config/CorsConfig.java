@@ -14,14 +14,10 @@ public class CorsConfig {
     @Bean
     public CorsWebFilter corsWebFilter() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of(
-                "http://localhost:3000",
-                "http://localhost:3001",
-                "http://localhost:3002"
-        ));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("*"));
-        config.setAllowCredentials(true);
+        config.setAllowedOriginPatterns(List.of("*"));
+        config.setAllowedMethods(List.of(CorsConfiguration.ALL));
+        config.setAllowedHeaders(List.of(CorsConfiguration.ALL));
+        config.setAllowCredentials(false);
         config.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
