@@ -8,7 +8,16 @@ import {
   loanRepayHeaders,
 } from '../auth/lenderLoanHeaders';
 
-const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || '/api';
+function trimNonEmpty(v: unknown): string | undefined {
+  if (v === undefined || v === null) return undefined;
+  const s = String(v).trim();
+  return s.length > 0 ? s : undefined;
+}
+
+const API_BASE_URL =
+  trimNonEmpty(typeof window !== 'undefined' ? window.__ENV__?.VITE_API_BASE_URL : undefined) ??
+  trimNonEmpty(import.meta.env?.VITE_API_BASE_URL as string | undefined) ??
+  '/api';
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
