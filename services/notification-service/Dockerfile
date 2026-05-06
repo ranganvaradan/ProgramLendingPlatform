@@ -4,7 +4,14 @@ COPY mvnw .
 RUN chmod +x mvnw
 COPY .mvn .mvn
 COPY pom.xml .
+COPY services/api-gateway/pom.xml services/api-gateway/pom.xml
+COPY services/discovery-service/pom.xml services/discovery-service/pom.xml
+COPY services/iam-service/pom.xml services/iam-service/pom.xml
+COPY services/integration-service/pom.xml services/integration-service/pom.xml
+COPY services/lending-service/pom.xml services/lending-service/pom.xml
 COPY services/notification-service/pom.xml services/notification-service/pom.xml
+COPY services/program-service/pom.xml services/program-service/pom.xml
+COPY services/report-service/pom.xml services/report-service/pom.xml
 COPY services/notification-service/src services/notification-service/src
 RUN ./mvnw dependency:go-offline -q -pl services/notification-service
 RUN ./mvnw package -DskipTests -q -pl services/notification-service
