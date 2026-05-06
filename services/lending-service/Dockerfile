@@ -1,6 +1,7 @@
 FROM eclipse-temurin:21-jdk-alpine AS builder
 WORKDIR /build
 COPY mvnw .
+RUN chmod +x mvnw
 COPY .mvn .mvn
 COPY pom.xml .
 COPY services/lending-service/pom.xml services/lending-service/pom.xml
