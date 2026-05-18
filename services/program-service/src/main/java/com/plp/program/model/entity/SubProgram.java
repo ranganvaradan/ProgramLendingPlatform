@@ -69,6 +69,12 @@ public class SubProgram {
     @Builder.Default
     private String status = "DRAFT";
 
+    @Column(name = "source_system", length = 50)
+    private String sourceSystem;
+
+    @Column(name = "los_sub_program_id", length = 100)
+    private String losSubProgramId;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private Instant createdAt;

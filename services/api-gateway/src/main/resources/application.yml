@@ -13,6 +13,10 @@ spring:
             allowed-methods: "*"
             allowed-headers: "*"
       routes:
+        - id: program-service-los-integration
+          uri: lb://program-service
+          predicates:
+            - Path=/api/v1/integrations/los/**
         - id: iam-service
           uri: lb://iam-service
           predicates:

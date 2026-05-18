@@ -21,4 +21,6 @@ public interface BorrowerRepository extends JpaRepository<Borrower, UUID> {
     List<Borrower> findByProgramIdAndStatus(UUID programId, BorrowerStatus status);
 
     Optional<Borrower> findByPanAndProgramId(String pan, UUID programId);
+
+    Optional<Borrower> findBySourceSystemAndLosBorrowerId(String sourceSystem, String losBorrowerId);
 }

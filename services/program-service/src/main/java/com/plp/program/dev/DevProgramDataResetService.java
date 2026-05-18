@@ -14,6 +14,8 @@ public class DevProgramDataResetService {
 
     private final InvoiceRepository invoiceRepository;
     private final EmployeeSalaryDataRepository employeeSalaryDataRepository;
+    private final BorrowerProgramMappingRepository borrowerProgramMappingRepository;
+    private final LosSyncAuditRepository losSyncAuditRepository;
     private final SubProgramBorrowerRepository subProgramBorrowerRepository;
     private final SubProgramRepository subProgramRepository;
     private final BorrowerLimitRepository borrowerLimitRepository;
@@ -25,6 +27,8 @@ public class DevProgramDataResetService {
     public void resetAllProgramData() {
         invoiceRepository.deleteAllInBatch();
         employeeSalaryDataRepository.deleteAllInBatch();
+        losSyncAuditRepository.deleteAllInBatch();
+        borrowerProgramMappingRepository.deleteAllInBatch();
         subProgramBorrowerRepository.deleteAllInBatch();
         subProgramRepository.deleteAllInBatch();
         borrowerLimitRepository.deleteAllInBatch();

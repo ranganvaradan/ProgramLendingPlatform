@@ -74,6 +74,14 @@ public class Anchor {
     @Builder.Default
     private AnchorStatus status = AnchorStatus.DRAFT;
 
+    /** External LOS tenant / product line (partial unique with {@link #losAnchorId} in DB). */
+    @Column(name = "source_system", length = 50)
+    private String sourceSystem;
+
+    /** Anchor identifier in the originating LOS. */
+    @Column(name = "los_anchor_id", length = 100)
+    private String losAnchorId;
+
     @CreationTimestamp
     @Column(updatable = false)
     private Instant createdAt;

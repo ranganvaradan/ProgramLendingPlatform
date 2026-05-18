@@ -17,6 +17,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -94,6 +95,10 @@ public class ProgramService {
         return programRepository
                 .findByProgramCode(programCode)
                 .orElseThrow(() -> new RuntimeException("Program not found: " + programCode));
+    }
+
+    public Optional<Program> findOptionalByProgramCode(String programCode) {
+        return programRepository.findByProgramCode(programCode);
     }
 
     /** Program rows with {@link Program#setUtilizedLimit} / {@link Program#setAvailableLimit} filled for API listing. */

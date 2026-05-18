@@ -25,6 +25,8 @@ public interface SubProgramRepository extends JpaRepository<SubProgram, UUID> {
 
     Optional<SubProgram> findByCode(String code);
 
+    Optional<SubProgram> findBySourceSystemAndLosSubProgramId(String sourceSystem, String losSubProgramId);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT s FROM SubProgram s WHERE s.id = :id")
     Optional<SubProgram> findByIdForUpdate(@Param("id") UUID id);

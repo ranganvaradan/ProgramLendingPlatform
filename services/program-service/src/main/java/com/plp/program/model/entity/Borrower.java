@@ -72,6 +72,14 @@ public class Borrower {
     @Builder.Default
     private BorrowerStatus status = BorrowerStatus.PENDING_KYC;
 
+    /** External LOS tenant / product line for stable borrower correlation. */
+    @Column(name = "source_system", length = 50)
+    private String sourceSystem;
+
+    /** Borrower identifier in the originating LOS. */
+    @Column(name = "los_borrower_id", length = 100)
+    private String losBorrowerId;
+
     @CreationTimestamp
     @Column(updatable = false)
     private Instant createdAt;

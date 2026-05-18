@@ -130,6 +130,12 @@ public class Program {
     @Builder.Default
     private boolean autoRenewal = false;
 
+    @Column(name = "source_system", length = 50)
+    private String sourceSystem;
+
+    @Column(name = "los_program_id", length = 100)
+    private String losProgramId;
+
     @CreationTimestamp
     @Column(updatable = false)
     private Instant createdAt;

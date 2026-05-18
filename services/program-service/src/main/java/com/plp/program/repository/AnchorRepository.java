@@ -21,4 +21,6 @@ public interface AnchorRepository extends JpaRepository<Anchor, UUID> {
     boolean existsByGstin(String gstin);
 
     boolean existsByAnchorCode(String anchorCode);
+
+    Optional<Anchor> findBySourceSystemAndLosAnchorId(String sourceSystem, String losAnchorId);
 }

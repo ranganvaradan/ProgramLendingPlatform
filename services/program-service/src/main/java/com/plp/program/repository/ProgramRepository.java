@@ -17,6 +17,8 @@ public interface ProgramRepository extends JpaRepository<Program, UUID> {
 
     Optional<Program> findByProgramCode(String programCode);
 
+    Optional<Program> findBySourceSystemAndLosProgramId(String sourceSystem, String losProgramId);
+
     List<Program> findByAnchorId(UUID anchorId);
 
     List<Program> findByProductType(ProductType productType);
